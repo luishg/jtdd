@@ -4,3 +4,9 @@
 [submodule "modules/mc6809"]
 	path = modules/mc6809
 	url = git@github.com:cavnex/mc6809.git
+[submodule "jt51"]
+	path = jt51
+	url = /home/jtejada/github/jt_gng/modules/jt51
+[submodule "modules/jt51"]
+	path = modules/jt51
+	url = /home/jtejada/github/jt_gng/modules/jt51

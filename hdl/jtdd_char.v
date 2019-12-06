@@ -36,18 +36,19 @@ module jtdd_char(
     output reg [14:0]  char_addr,
     input      [ 7:0]  rom_data,
     input      [ 7:0]  rom_ok,
-    output     [ 6:0]  char_pxl
+    output reg [ 6:0]  char_pxl
 );
 
-reg         ram_we;
+reg         hi_we, lo_we;
 reg  [11:0] ram_addr, scan;
 wire [ 7:0] hi_data, lo_data;
 
 always @(*) begin
-    lo_we    = char_cs && !cpu_wrn && !cpu_AB[0];
-    hi_we    = char_cs && !cpu_wrn &&  cpu_AB[0];
-    scan     = { 1'b1, VPOS[7:3], HPOS[7:3] };
-    ram_addr = char_cs ? cpu_AB[12:1] : scan;
+    lo_we     = char_cs && !cpu_wrn && !cpu_AB[0];
+    hi_we     = char_cs && !cpu_wrn &&  cpu_AB[0];
+    scan      = { 1'b1, VPOS[7:3], HPOS[7:3] };
+    ram_addr  = char_cs ? cpu_AB[12:1] : scan;
+    char_dout = cpu_AB[0] ? hi_data : lo_data;
 end
 
 reg [7:0] shift;

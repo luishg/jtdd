@@ -34,6 +34,7 @@ module jtdd_colmix(
     input              pal_cs,
     // PROM programming
     input [7:0]        prog_addr,
+    input [3:0]        prom_din,
     input              prom_prio_we,
     // Pixel output
     output reg [3:0]   red,
@@ -53,7 +54,7 @@ wire [1:0] prio;
 always @(posedge clk) begin
     pal_gr_we <= pal_cs && !cpu_AB[9];
     pal_b_we  <= pal_cs &&  cpu_AB[9];
-    cpu_din   <= cpu_AB[9] ? pal_b : pal_gr;
+    pal_dout  <= cpu_AB[9] ? pal_b : pal_gr;
     if( pal_cs )
         pal_addr <= cpu_AB[8:0];
     else 
@@ -80,13 +81,13 @@ jtframe_ram #(.aw(9),.simfile("pal_gr.bin")) u_pal_gr(
     .q      ( pal_gr      )
 );
 
-jtframe_ram #(.aw(9),.simfile("pal_b.bin")) u_pal_b(
-    .clk    ( clk         ),
-    .cen    ( 1'b1        ),
-    .data   ( cpu_dout    ),
-    .addr   ( pal_addr    ),
-    .we     ( pal_b_we    ),
-    .q      ( pal_b       )
+jtframe_ram #(.aw(9),.dw(4),.simfile("pal_b.bin")) u_pal_b(
+    .clk    ( clk           ),
+    .cen    ( 1'b1          ),
+    .data   ( cpu_dout[3:0] ),
+    .addr   ( pal_addr      ),
+    .we     ( pal_b_we      ),
+    .q      ( pal_b         )
 );
 
 jtframe_prom #(.aw(8),.dw(2),.simfile(SIM_PRIO)) u_prio(
