@@ -12,7 +12,7 @@ wire       VBLK;
 initial begin
     RSTn = 1'b0;
     #50 RSTn = 1'b1;
-    #30_000_000 $finish;
+    #90_000_000 $finish;
 end
 
 initial begin
@@ -26,7 +26,9 @@ dut UUT(
     .flipn  ( flipn ),
     .HPOS   ( HPOS  ),
     .DVPOS  ( DVPOS ),
-    .VBLK   ( VBLK  )
+    .VBLK   ( VBLK  ),
+    .E      ( E     ),
+    .Q      ( Q     )
 );
 
 initial begin

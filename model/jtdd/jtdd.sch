@@ -497,7 +497,7 @@ Wire Wire Line
 Wire Wire Line
 	1950 6350 1950 7500
 Wire Wire Line
-	1950 7500 2500 7500
+	1950 7500 2100 7500
 Wire Wire Line
 	2500 6700 2400 6700
 Wire Wire Line
@@ -1118,9 +1118,6 @@ F 3 "http://www.ti.com/lit/gpn/sn74ls00" H 3000 6000 50  0001 C CNN
 	1    3000 6000
 	-1   0    0    1   
 $EndComp
-Connection ~ 3300 6100
-Connection ~ 3300 5900
-Connection ~ 2700 6000
 $Comp
 L jt74xx:74LS00 U13
 U 1 2 5E24B057
@@ -1142,4 +1139,67 @@ Text Label 3250 2600 0    50   ~ 0
 hc0
 Text Label 3700 4150 0    50   ~ 0
 hc1
+Wire Wire Line
+	2100 7500 2100 9050
+Wire Wire Line
+	2100 9050 2500 9050
+Connection ~ 2100 7500
+Wire Wire Line
+	2100 7500 2500 7500
+Text Label 2550 10500 0    50   ~ 0
+HN[8]
+Wire Wire Line
+	4900 1400 5900 1400
+Text Label 5250 1400 0    50   ~ 0
+HCLK1
+$Comp
+L jt74xx:74HC04 U?
+U 1 1 5E281C6A
+P 9000 1500
+F 0 "U?" V 8954 1680 50  0000 L CNN
+F 1 "74HC04" V 9045 1680 50  0000 L CNN
+F 2 "" H 9000 1500 50  0001 C CNN
+F 3 "http://www.nxp.com/documents/data_sheet/74HC_HCT04.pdf" H 9000 1500 50  0001 C CNN
+	1    9000 1500
+	1    0    0    -1  
+$EndComp
+$Comp
+L jt74xx:74LS74 U?
+U 1 1 5E281E38
+P 10000 2200
+F 0 "U?" H 10000 2678 50  0000 C CNN
+F 1 "74LS74" H 10000 2587 50  0000 C CNN
+F 2 "" H 10000 2200 50  0001 C CNN
+F 3 "74xx/74hc_hct74.pdf" H 10000 2200 50  0001 C CNN
+	1    10000 2200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8700 1500 8450 1500
+Text Label 8450 1500 0    50   ~ 0
+HN[0]
+Wire Wire Line
+	9300 1500 9400 1500
+Text GLabel 9550 1500 2    50   Output ~ 0
+E
+Wire Wire Line
+	9400 1500 9400 2100
+Wire Wire Line
+	9400 2100 9700 2100
+Connection ~ 9400 1500
+Wire Wire Line
+	9400 1500 9550 1500
+Wire Wire Line
+	9700 2200 9400 2200
+Text Label 9400 2200 2    50   ~ 0
+HCLK1
+Text Label 10000 1900 2    50   ~ 0
+tie1
+Text Label 10000 2500 3    50   ~ 0
+tie1
+Wire Wire Line
+	10300 2300 10500 2300
+Text GLabel 10500 2300 2    50   Output ~ 0
+Q
+NoConn ~ 10300 2100
 $EndSCHEMATC

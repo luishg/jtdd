@@ -6,7 +6,9 @@ module dut(
     input flipn,
     output [7:0] HPOS,
     output [7:0] DVPOS,
-    output       VBLK
+    output       VBLK,
+    output       E,
+    output       Q
 );
 
 `include "dut.inc"

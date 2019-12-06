@@ -16,11 +16,18 @@
     Version: 1.0
     Date: 2-12-2017 */
 
+// Clocks are derived from H counter on the original PCB
+// Yet, that doesn't seem to be important and it only
+// matters the frequency of the signals:
+// E,Q: 3 MHz
+// Q is 1/4th of wave advanced
+
 
 module jtdd_main(
     input              clk,
     input              rst,
-    input              cpu_cen,
+    input              cen_E,
+    input              cen_Q,
     input              VBL,
     output  reg        blue_cs,
     output  reg        redgreen_cs,
@@ -288,13 +295,14 @@ jtframe_ff #(.W(3)) u_irq(
 );
 
 // cycle accurate core
-mc6809e u_cpu(
+mc6809i u_cpu(
     .D       ( cpu_din ),
     .DOut    ( cpu_dout),
     .ADDR    ( A       ),
     .RnW     ( RnW     ),
-    .E       ( clk_E   ),
-    .Q       ( clk_Q   ),
+    .clk     ( clk     ),
+    .E       ( cen_E   ),
+    .Q       ( cen_Q   ),
     .BS      (         ),
     .BA      (         ),
     .nIRQ    ( nIRQ    ),
@@ -304,7 +312,8 @@ mc6809e u_cpu(
     .BUSY    (         ),
     .LIC     (         ),
     .nHALT   ( 1'b1    ),   
-    .nRESET  ( nRESET  )
+    .nRESET  ( nRESET  ),
+    .RegData (         )
 );
 
 endmodule // jtdd_main

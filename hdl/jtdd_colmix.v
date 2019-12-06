@@ -21,30 +21,63 @@ module jtdd_colmix(
     input              clk,
     input              rst,
     input              pxl_cen,
-    input [7:0]        cpu_dout,
-    input [8:0]        cpu_addr,
+    input      [7:0]   cpu_dout,
+    output reg [7:0]   cpu_din,
+    input [9:0]        cpu_addr,
+    // blanking
+    input              VBL,
+    input              HBL,
+    // Pixel inputs
+    input [6:0]        chr_pxl,  // called mcol in schematics
+    input [6:0]        obj_pxl,  // called ocol in schematics
+    input [6:0]        scr_pxl,  // called bcol in schematics
     input              pal_cs,
+    // PROM programming
     input [7:0]        prog_addr,
     input              prom_prio_we,
-    output [3:0]       red,
-    output [3:0]       green,
-    output [3:0]       blue
+    // Pixel output
+    output reg [3:0]   red,
+    output reg [3:0]   green,
+    output reg [3:0]   blue
 );
 
-wire [7:0] pal_rg;
+parameter SIM_PRIO="../../rom/21j-k-0"
+
+wire [7:0] pal_gr;
 wire [3:0] pal_b;
-reg        pal_rg_we, pal_b_we;
+reg        pal_gr_we, pal_b_we;
 reg  [8:0] pal_addr;
 reg  [7:0] seladdr;
 wire [1:0] prio;
 
-jtframe_ram #(.aw(9)) u_pal_rg(
+always @(posedge clk) begin
+    pal_gr_we <= pal_cs && !cpu_addr[9];
+    pal_b_we  <= pal_cs &&  cpu_addr[9];
+    cpu_din   <= cpu_addr[9] ? pal_b : pal_gr;
+    if( pal_cs )
+        pal_addr <= cpu_addr[8:0];
+    else 
+        case( prio )
+            default: pal_addr <= { 2'b00, chr_pxl };
+            2'd2:    pal_addr <= { 2'b01, obj_pxl };
+            2'd3:    pal_addr <= { 2'b10, scr_pxl };
+        endcase
+
+end
+
+wire BL = VBL | HBL;
+
+always @(posedge clk) begin
+    { blue, green, red } <= BL ? 12'd0 : { pal_b, pal_gr };
+end
+
+jtframe_ram #(.aw(9)) u_pal_gr(
     .clk    ( clk         ),
     .cen    ( pxl_cen     ),
     .data   ( cpu_dout    ),
     .addr   ( pal_addr    ),
-    .we     ( pal_rg_we   ),
-    .q      ( pal_rg      )
+    .we     ( pal_gr_we   ),
+    .q      ( pal_gr      )
 );
 
 jtframe_ram #(.aw(9)) u_pal_b(

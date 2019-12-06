@@ -2,7 +2,6 @@ wire [8:0] _HN;
 wire [7:0] _VN;
 wire [7:0] _VPOS;
 wire GND;
-wire Net__U10_Pad1_;
 wire Net__U10_Pad2_;
 wire Net__U10_Pad3_;
 wire Net__U10_Pad5_;
@@ -12,7 +11,6 @@ wire Net__U12_Pad10_;
 wire Net__U12_Pad12_;
 wire Net__U12_Pad13_;
 wire Net__U12_Pad14_;
-wire Net__U12_Pad3_;
 wire Net__U12_Pad4_;
 wire Net__U12_Pad6_;
 wire Net__U13_Pad1_;
@@ -29,6 +27,7 @@ wire Net__U31_Pad5_;
 wire Net__U31_Pad6_;
 wire Net__U31_Pad9_;
 wire Net__U32_Pad8_;
+wire Net__U36_Pad5_;
 wire Net__U3_Pad3_;
 wire Net__U3_Pad4_;
 wire Net__U3_Pad5_;
@@ -41,8 +40,8 @@ wire Net__U5_Pad11_;
 wire Net__U5_Pad12_;
 wire Net__U5_Pad15_;
 wire Net__U7_Pad15_;
-wire Net__U8_Pad2_;
 wire VCC;
+wire _HCLK1;
 wire _HCLK2;
 wire _hc0;
 wire _hc1;
@@ -55,7 +54,7 @@ jt7404 U1(
 );
 
 jt74112 U10(
-    .clk1_b    ( Net__U10_Pad1_           ) /* pin 1*/ ,
+    .clk1_b    ( _HN[8]                   ) /* pin 1*/ ,
     .k1        ( Net__U10_Pad2_           ) /* pin 2*/ ,
     .j1        ( Net__U10_Pad3_           ) /* pin 3*/ ,
     .pr1_b     ( Net__U10_Pad2_           ) /* pin 4*/ ,
@@ -84,7 +83,7 @@ jt74367 U12(
                   _HN[2],
                   _HN[1],
                   _HN[0],
-                  Net__U12_Pad3_})
+                  _HCLK1})
 );
 
 jt7400 U13(
@@ -130,7 +129,7 @@ jt7486 U19(
 );
 
 jt74112 U2(
-    .clk1_b    ( Net__U10_Pad1_           ) /* pin 1*/ ,
+    .clk1_b    ( _HN[8]                   ) /* pin 1*/ ,
     .k1        ( Net__U1_Pad1_            ) /* pin 2*/ ,
     .j1        ( Net__U1_Pad1_            ) /* pin 3*/ ,
     .pr1_b     ( RSTn                     ) /* pin 4*/ ,
@@ -281,6 +280,20 @@ jt7400 U34(
     .out3      ( VBLK                     ) /* pin 3*/ 
 );
 
+jt7404 U35(
+    .in1       ( _HN[0]                   ) /* pin 1*/ ,
+    .out2      ( E                        ) /* pin 2*/ 
+);
+
+jt7474 U36(
+    .cl1_b     ( _tie1                    ) /* pin 1*/ ,
+    .d1        ( E                        ) /* pin 2*/ ,
+    .clk1      ( _HCLK1                   ) /* pin 3*/ ,
+    .pr1_b     ( _tie1                    ) /* pin 4*/ ,
+    .q1        ( Net__U36_Pad5_           ) /* pin 5*/ ,
+    .q1_b      ( Q                        ) /* pin 6*/ 
+);
+
 jt74161 U4(
     .cl_b      ( _tie1                    ) /* pin 1*/ ,
     .clk       ( clk12                    ) /* pin 2*/ ,
@@ -340,7 +353,7 @@ jt74161 U7(
 
 jt74161 U8(
     .cl_b      ( RSTn                     ) /* pin 1*/ ,
-    .clk       ( Net__U8_Pad2_            ) /* pin 2*/ ,
+    .clk       ( Net__U31_Pad11_          ) /* pin 2*/ ,
     .cep       ( Net__U7_Pad15_           ) /* pin 7*/ ,
     .ld_b      ( Net__U1_Pad2_            ) /* pin 9*/ ,
     .cet       ( Net__U7_Pad15_           ) /* pin 10*/ ,
