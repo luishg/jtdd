@@ -20,15 +20,15 @@
 module jtdd_colmix(
     input              clk,
     input              rst,
-    input              pxl_cen,
+    (*direct_enable*) input pxl_cen,
     input      [7:0]   cpu_dout,
-    output reg [7:0]   cpu_din,
-    input [9:0]        cpu_addr,
+    output reg [7:0]   pal_dout,
+    input [9:0]        cpu_AB,
     // blanking
     input              VBL,
     input              HBL,
     // Pixel inputs
-    input [6:0]        chr_pxl,  // called mcol in schematics
+    input [6:0]        char_pxl,  // called mcol in schematics
     input [6:0]        obj_pxl,  // called ocol in schematics
     input [6:0]        scr_pxl,  // called bcol in schematics
     input              pal_cs,
@@ -41,7 +41,7 @@ module jtdd_colmix(
     output reg [3:0]   blue
 );
 
-parameter SIM_PRIO="../../rom/21j-k-0"
+parameter SIM_PRIO="../../rom/21j-k-0";
 
 wire [7:0] pal_gr;
 wire [3:0] pal_b;
@@ -51,14 +51,14 @@ reg  [7:0] seladdr;
 wire [1:0] prio;
 
 always @(posedge clk) begin
-    pal_gr_we <= pal_cs && !cpu_addr[9];
-    pal_b_we  <= pal_cs &&  cpu_addr[9];
-    cpu_din   <= cpu_addr[9] ? pal_b : pal_gr;
+    pal_gr_we <= pal_cs && !cpu_AB[9];
+    pal_b_we  <= pal_cs &&  cpu_AB[9];
+    cpu_din   <= cpu_AB[9] ? pal_b : pal_gr;
     if( pal_cs )
-        pal_addr <= cpu_addr[8:0];
+        pal_addr <= cpu_AB[8:0];
     else 
         case( prio )
-            default: pal_addr <= { 2'b00, chr_pxl };
+            default: pal_addr <= { 2'b00, char_pxl };
             2'd2:    pal_addr <= { 2'b01, obj_pxl };
             2'd3:    pal_addr <= { 2'b10, scr_pxl };
         endcase
@@ -67,22 +67,22 @@ end
 
 wire BL = VBL | HBL;
 
-always @(posedge clk) begin
+always @(posedge clk) if(pxl_cen) begin
     { blue, green, red } <= BL ? 12'd0 : { pal_b, pal_gr };
 end
 
-jtframe_ram #(.aw(9)) u_pal_gr(
+jtframe_ram #(.aw(9),.simfile("pal_gr.bin")) u_pal_gr(
     .clk    ( clk         ),
-    .cen    ( pxl_cen     ),
+    .cen    ( 1'b1        ),
     .data   ( cpu_dout    ),
     .addr   ( pal_addr    ),
     .we     ( pal_gr_we   ),
     .q      ( pal_gr      )
 );
 
-jtframe_ram #(.aw(9)) u_pal_b(
+jtframe_ram #(.aw(9),.simfile("pal_b.bin")) u_pal_b(
     .clk    ( clk         ),
-    .cen    ( pxl_cen     ),
+    .cen    ( 1'b1        ),
     .data   ( cpu_dout    ),
     .addr   ( pal_addr    ),
     .we     ( pal_b_we    ),
