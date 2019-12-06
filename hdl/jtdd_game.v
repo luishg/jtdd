@@ -70,9 +70,6 @@ module jtdd_game(
 
 );
 
-
-wire               pxl_cen;
-wire               cen12;
 wire       [12:0]  cpu_AB;
 wire               pal_cs;
 wire               char_cs;
@@ -85,12 +82,33 @@ wire               VBL, HBL, VS, HS;
 wire               flip;
 // ROM access
 wire       [14:0]  char_addr;
-wire       [ 7:0]  rom_data;
-wire       [ 7:0]  rom_ok;
+wire       [ 7:0]  char_data;
+wire               char_ok;
 wire       [ 6:0]  char_pxl;
 // PROM programming
 wire       [21:0]  prog_addr;
 wire               prom_prio_we;
+
+assign LVBL_dly = ~VBL;
+assign LHBL_dly = ~HBL;
+assign prog_addr = 22'd0;
+
+wire cen12, cen8, cen6, cen3, cen3q, cen1p5, cen12b, cen6b;
+
+assign pxl_cen  = cen6;
+assign pxl2_cen = cen12;
+
+jtframe_cen48 u_cen(
+    .clk     (  clk      ),    // 48 MHz
+    .cen12   (  cen12    ),
+    .cen8    (  cen8     ),
+    .cen6    (  cen6     ),
+    .cen3    (  cen3     ),
+    .cen3q   (  cen3q    ), // 1/4 advanced with respect to cen3
+    .cen1p5  (  cen1p5   ),
+    .cen12b  (  cen12b   ),
+    .cen6b   (  cen6b    )
+);
 
 jtdd_video u_video(
     .clk          (  clk          ),
@@ -112,8 +130,8 @@ jtdd_video u_video(
     .flip         (  flip         ),
     .char_addr    (  char_addr    ),
     // ROM access
-    .rom_data     (  rom_data     ),
-    .rom_ok       (  rom_ok       ),
+    .char_data    (  char_data    ),
+    .char_ok      (  char_ok      ),
     .char_pxl     (  char_pxl     ),
     // PROM programming
     .prog_addr    (  prog_addr[7:0]    ),
@@ -122,6 +140,76 @@ jtdd_video u_video(
     .red          (  red          ),
     .green        (  green        ),
     .blue         (  blue         )
+);
+
+// Same as locations inside JTDD.rom file
+localparam BANK_ADDR   = 22'h00000;
+localparam MAIN_ADDR   = 22'h20000;
+localparam SND_ADDR    = 22'h28000;
+localparam ADPCM_1     = 22'h30000;
+localparam ADPCM_2     = 22'h40000;
+localparam CHAR_ADDR   = 22'h50000;
+
+// reallocated:
+localparam SCR_ADDR  = 22'h40000;
+localparam OBJ_ADDR  = 22'h80000;
+
+
+jtframe_rom #(
+    .char_aw    ( 15              ),
+    .char_dw    ( 8               ),
+    .main_aw    ( 17              ),
+    .obj_aw     ( 16              ),
+    .scr1_aw    ( 15              ),
+    .scr2_aw    ( 15              ),
+    // MAP slots used for ADPCM
+    .snd_offset ( SND_ADDR>>1     ),
+    .char_offset( CHAR_ADDR>>1    ),
+    .scr1_offset( SCR_ADDR        ),
+    .scr2_offset(  ),
+    .obj_offset ( OBJ_ADDR        )
+) u_rom (
+    .rst         ( rst           ),
+    .clk         ( clk           ),
+    .LVBL        ( ~VBL          ),
+
+    .main_cs     ( 1'b0          ),
+    .snd_cs      ( 1'b0          ),
+    .main_ok     ( main_ok       ),
+    .snd_ok      (               ),
+    .scr1_ok     (               ),
+    .scr2_ok     (               ),
+    .char_ok     ( char_ok       ),
+    .obj_ok      (               ),
+
+    .char_addr   ( char_addr     ),
+    .main_addr   ( 17'd0             ),
+    .snd_addr    ( 15'd0             ),
+    .obj_addr    ( 16'd0             ),
+    .scr1_addr   ( 15'd0             ),
+    .scr2_addr   ( 15'd0             ),
+    .map1_addr   ( 14'd0         ),
+    .map2_addr   ( 14'd0         ),
+
+    .char_dout   ( char_data     ),
+    .main_dout   (               ),
+    .snd_dout    (               ),
+    .obj_dout    (               ),
+    .map1_dout   (               ),
+    .map2_dout   (               ),
+    .scr1_dout   (               ),
+    .scr2_dout   (               ),
+
+    .ready       ( rom_ready     ),
+    // SDRAM interface
+    .sdram_req   ( sdram_req     ),
+    .sdram_ack   ( sdram_ack     ),
+    .data_rdy    ( data_rdy      ),
+    .downloading ( downloading   ),
+    .loop_rst    ( loop_rst      ),
+    .sdram_addr  ( sdram_addr    ),
+    .data_read   ( data_read     ),
+    .refresh_en  ( refresh_en    )
 );
 
 endmodule

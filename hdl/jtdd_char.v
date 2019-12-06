@@ -35,7 +35,7 @@ module jtdd_char(
     // ROM access
     output reg [14:0]  char_addr,
     input      [ 7:0]  rom_data,
-    input      [ 7:0]  rom_ok,
+    input              rom_ok,
     output reg [ 6:0]  char_pxl
 );
 

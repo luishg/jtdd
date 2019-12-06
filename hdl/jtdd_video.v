@@ -40,8 +40,8 @@ module jtdd_video(
     input              flip,
     // ROM access
     output reg [14:0]  char_addr,
-    input      [ 7:0]  rom_data,
-    input      [ 7:0]  rom_ok,
+    input      [ 7:0]  char_data,
+    input              char_ok,
     output     [ 6:0]  char_pxl,
     // PROM programming
     input [7:0]        prog_addr,
@@ -86,8 +86,8 @@ jtdd_char u_char(
     .VPOS        ( VPOS             ),
     .flip        ( flip             ),
     .char_addr   ( char_addr        ),
-    .rom_data    ( rom_data         ),
-    .rom_ok      ( rom_ok           ),
+    .rom_data    ( char_data        ),
+    .rom_ok      ( char_ok          ),
     .char_pxl    ( char_pxl         )
 );
 
@@ -97,7 +97,7 @@ jtdd_colmix u_colmix(
     .pxl_cen     ( pxl_cen          ),
     .cpu_dout    ( cpu_dout         ),
     .pal_dout    ( pal_dout         ),
-    .cpu_AB      ( cpu_AB           ),
+    .cpu_AB      ( cpu_AB[9:0]      ),
     .VBL         ( VBL              ),
     .HBL         ( HBL              ),
     .char_pxl    ( char_pxl         ),
