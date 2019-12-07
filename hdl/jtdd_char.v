@@ -46,7 +46,7 @@ wire [ 7:0] hi_data, lo_data;
 always @(*) begin
     lo_we     = char_cs && !cpu_wrn && !cpu_AB[0];
     hi_we     = char_cs && !cpu_wrn &&  cpu_AB[0];
-    scan      = { 1'b1, VPOS[7:3], HPOS[7:3] };
+    scan      = { 2'b11, VPOS[7:3], HPOS[7:3] };
     ram_addr  = char_cs ? cpu_AB[12:1] : scan;
     char_dout = cpu_AB[0] ? hi_data : lo_data;
 end
@@ -57,13 +57,15 @@ reg [2:0] pal;
 always @(posedge clk) if(pxl_cen) begin
     case( HPOS[0] ) 
         1'b0: begin
-            char_addr <= { hi_data[1:0], lo_data, HPOS[2:1], VPOS[2:0] };
+            char_addr <= { hi_data[1:0], lo_data, HPOS[2:1], VPOS[2:1],~VPOS[0] };
             pal       <= hi_data[7:5];
-            shift     <= { rom_data[7:6], rom_data[3:2], rom_data[5:4], rom_data[1:0] };
-            char_pxl  <= { pal, shift[3:0] };
+            shift     <= { 
+                rom_data[7], rom_data[5], rom_data[3], rom_data[1],
+                rom_data[6], rom_data[4], rom_data[2], rom_data[0] };
+            char_pxl  <= { pal, shift[7:4] };
         end
         1'b1: begin
-            char_pxl  <= { pal, shift[7:4] };
+            char_pxl  <= { pal, shift[3:0] };
         end
     endcase
 end
