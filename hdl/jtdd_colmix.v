@@ -27,10 +27,12 @@ module jtdd_colmix(
     // blanking
     input              VBL,
     input              HBL,
+    output reg         LVBL_dly,
+    output reg         LHBL_dly,
     // Pixel inputs
     input [6:0]        char_pxl,  // called mcol in schematics
-    input [6:0]        obj_pxl,  // called ocol in schematics
-    input [6:0]        scr_pxl,  // called bcol in schematics
+    input [7:0]        obj_pxl,  // called ocol in schematics
+    input [7:0]        scr_pxl,  // called bcol in schematics
     input              pal_cs,
     // PROM programming
     input [7:0]        prog_addr,
@@ -48,8 +50,10 @@ wire [7:0] pal_gr;
 wire [3:0] pal_b;
 reg        pal_gr_we, pal_b_we;
 reg  [8:0] pal_addr;
-reg  [7:0] seladdr;
 wire [1:0] prio;
+wire       obj_blank  = ~|obj_pxl[3:0];
+wire       char_blank = ~|char_pxl[3:0];
+wire [7:0] seladdr = { scr_pxl[7], obj_pxl[7], obj_blank, char_blank, scr_pxl[3:0] };
 
 always @(posedge clk) begin
     pal_gr_we <= pal_cs && !cpu_AB[9];
@@ -70,6 +74,8 @@ wire BL = VBL | HBL;
 
 always @(posedge clk) if(pxl_cen) begin
     { blue, green, red } <= BL ? 12'd0 : { pal_b, pal_gr };
+    LVBL_dly <= ~VBL;
+    LHBL_dly <= ~HBL;
 end
 
 jtframe_ram #(.aw(9),.simfile("pal_gr.bin")) u_pal_gr(

@@ -71,15 +71,15 @@ module jtdd_game(
 );
 
 wire       [12:0]  cpu_AB;
-wire               pal_cs;
-wire               char_cs;
-wire               cpu_wrn;
-wire       [ 7:0]  cpu_dout;
+wire               pal_cs=1'b0;
+wire               char_cs=1'b0;
+wire               cpu_wrn=1'b1;
+wire       [ 7:0]  cpu_dout=8'd0;
 wire               cen_E;
 wire       [ 7:0]  char_dout;
 // video signals
 wire               VBL, HBL, VS, HS;
-wire               flip;
+wire               flip = 1'b0;
 // ROM access
 wire       [14:0]  char_addr;
 wire       [ 7:0]  char_data;
@@ -89,12 +89,12 @@ wire       [ 6:0]  char_pxl;
 wire       [21:0]  prog_addr;
 wire               prom_prio_we;
 
-assign LVBL_dly = ~VBL;
-assign LHBL_dly = ~HBL;
 assign prog_addr = 22'd0;
+assign dwnld_busy = 1'b0;
 
-wire cen12, cen8, cen6, cen3, cen3q, cen1p5, cen12b, cen6b;
+wire cen12, cen8, cen6, cen3, cen3q, cen1p5, cen12b, cen6b, cen3b, cen3qb;
 
+assign cen_E    = cen3b;
 assign pxl_cen  = cen6;
 assign pxl2_cen = cen12;
 
@@ -104,7 +104,9 @@ jtframe_cen48 u_cen(
     .cen8    (  cen8     ),
     .cen6    (  cen6     ),
     .cen3    (  cen3     ),
+    .cen3b   (  cen3b    ),
     .cen3q   (  cen3q    ), // 1/4 advanced with respect to cen3
+    .cen3qb  (  cen3qb   ), // 1/4 advanced with respect to cen3b
     .cen1p5  (  cen1p5   ),
     .cen12b  (  cen12b   ),
     .cen6b   (  cen6b    )
@@ -124,8 +126,10 @@ jtdd_video u_video(
     .char_dout    (  char_dout    ),
     // video signals
     .VBL          (  VBL          ),
+    .LVBL_dly     (  LVBL_dly     ),
     .VS           (  VS           ),
     .HBL          (  HBL          ),
+    .LHBL_dly     (  LHBL_dly     ),
     .HS           (  HS           ),
     .flip         (  flip         ),
     .char_addr    (  char_addr    ),

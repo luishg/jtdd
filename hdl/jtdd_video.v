@@ -34,8 +34,10 @@ module jtdd_video(
     output     [ 7:0]  char_dout,
     // video signals
     output             VBL,
+    output             LVBL_dly,
     output             VS,
     output             HBL,
+    output             LHBL_dly,
     output             HS,
     input              flip,
     // ROM access
@@ -54,22 +56,22 @@ module jtdd_video(
 );
 
 wire [6:0]  char_pxl;  // called mcol in schematics
-wire [6:0]  obj_pxl=7'd0;  // called ocol in schematics
-wire [6:0]  scr_pxl=7'd0;  // called bcol in schematics
+wire [7:0]  obj_pxl=8'd0;  // called ocol in schematics
+wire [7:0]  scr_pxl=8'd0;  // called bcol in schematics
 wire [7:0]  HPOS, VPOS;
 
 jtdd_timing u_timing(
-    .clk    (  clk      ),
-    .rst    (  rst      ),
-    .cen12  (  cen12    ),
-    .flip   (  flip     ),
-    .VPOS   (  VPOS     ),
-    .HPOS   (  HPOS     ),
-    .VBL    (  VBL      ),
-    .VS     (  VS       ),
-    .HBL    (  HBL      ),
-    .HS     (  HS       ),
-    .M      (           )
+    .clk      (  clk      ),
+    .rst      (  rst      ),
+    .pxl_cen  (  pxl_cen  ),
+    .flip     (  flip     ),
+    .VPOS     (  VPOS     ),
+    .HPOS     (  HPOS     ),
+    .VBL      (  VBL      ),
+    .VS       (  VS       ),
+    .HBL      (  HBL      ),
+    .HS       (  HS       ),
+    .M        (           )
 );
 
 jtdd_char u_char(
@@ -100,6 +102,8 @@ jtdd_colmix u_colmix(
     .cpu_AB      ( cpu_AB[9:0]      ),
     .VBL         ( VBL              ),
     .HBL         ( HBL              ),
+    .LVBL_dly    ( LVBL_dly         ),
+    .LHBL_dly    ( LHBL_dly         ),
     .char_pxl    ( char_pxl         ),
     .obj_pxl     ( obj_pxl          ),
     .scr_pxl     ( scr_pxl          ),
