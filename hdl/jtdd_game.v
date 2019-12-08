@@ -70,24 +70,27 @@ module jtdd_game(
 
 );
 
-wire       [12:0]  cpu_AB;
+wire       [12:0]  cpu_AB=13'd0;
 wire               pal_cs=1'b0;
-wire               char_cs=1'b0;
+wire               char_cs=1'b0, scr_cs=1'b0;
 wire               cpu_wrn=1'b1;
 wire       [ 7:0]  cpu_dout=8'd0;
 wire               cen_E;
-wire       [ 7:0]  char_dout;
+wire       [ 7:0]  char_dout, scr_dout;
 // video signals
 wire               VBL, HBL, VS, HS;
 wire               flip = 1'b0;
 // ROM access
 wire       [14:0]  char_addr;
 wire       [ 7:0]  char_data;
-wire               char_ok;
-wire       [ 6:0]  char_pxl;
+wire       [16:0]  scr_addr;
+wire       [15:0]  scr_data;
+wire               char_ok, scr_ok;
 // PROM programming
 wire       [21:0]  prog_addr;
 wire               prom_prio_we;
+
+wire       [ 7:0]  scrhpos=8'd0, scrvpos=8'd0;
 
 assign prog_addr = 22'd0;
 assign dwnld_busy = 1'b0;
@@ -120,10 +123,14 @@ jtdd_video u_video(
     .cpu_AB       (  cpu_AB       ),
     .pal_cs       (  pal_cs       ),
     .char_cs      (  char_cs      ),
+    .scr_cs       (  scr_cs       ),
     .cpu_wrn      (  cpu_wrn      ),
     .cpu_dout     (  cpu_dout     ),
     .cen_E        (  cen_E        ),
     .char_dout    (  char_dout    ),
+    // Scroll position
+    .scrhpos      ( scrhpos       ),
+    .scrvpos      ( scrvpos       ),
     // video signals
     .VBL          (  VBL          ),
     .LVBL_dly     (  LVBL_dly     ),
@@ -132,11 +139,13 @@ jtdd_video u_video(
     .LHBL_dly     (  LHBL_dly     ),
     .HS           (  HS           ),
     .flip         (  flip         ),
-    .char_addr    (  char_addr    ),
     // ROM access
+    .char_addr    (  char_addr    ),
     .char_data    (  char_data    ),
     .char_ok      (  char_ok      ),
-    .char_pxl     (  char_pxl     ),
+    .scr_addr     (  scr_addr     ),
+    .scr_data     (  scr_data     ),
+    .scr_ok       (  scr_ok       ),
     // PROM programming
     .prog_addr    (  prog_addr[7:0]    ),
     .prom_prio_we (  prom_prio_we ),
@@ -164,7 +173,7 @@ jtframe_rom #(
     .char_dw    ( 8               ),
     .main_aw    ( 17              ),
     .obj_aw     ( 16              ),
-    .scr1_aw    ( 15              ),
+    .scr1_aw    ( 17              ),
     .scr2_aw    ( 15              ),
     // MAP slots used for ADPCM
     .snd_offset ( SND_ADDR>>1     ),
@@ -181,7 +190,7 @@ jtframe_rom #(
     .snd_cs      ( 1'b0          ),
     .main_ok     ( main_ok       ),
     .snd_ok      (               ),
-    .scr1_ok     (               ),
+    .scr1_ok     ( scr_ok        ),
     .scr2_ok     (               ),
     .char_ok     ( char_ok       ),
     .obj_ok      (               ),
@@ -190,7 +199,7 @@ jtframe_rom #(
     .main_addr   ( 17'd0             ),
     .snd_addr    ( 15'd0             ),
     .obj_addr    ( 16'd0             ),
-    .scr1_addr   ( 15'd0             ),
+    .scr1_addr   ( scr_addr      ),
     .scr2_addr   ( 15'd0             ),
     .map1_addr   ( 14'd0         ),
     .map2_addr   ( 14'd0         ),
@@ -201,7 +210,7 @@ jtframe_rom #(
     .obj_dout    (               ),
     .map1_dout   (               ),
     .map2_dout   (               ),
-    .scr1_dout   (               ),
+    .scr1_dout   ( scr_data      ),
     .scr2_dout   (               ),
 
     .ready       ( rom_ready     ),

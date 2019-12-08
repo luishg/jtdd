@@ -32,6 +32,17 @@ module jtdd_video(
     // Char
     input              char_cs,
     output     [ 7:0]  char_dout,
+    output     [14:0]  char_addr,
+    input      [ 7:0]  char_data,
+    input              char_ok,
+    // Scroll
+    input              scr_cs,
+    input      [ 7:0]  scrhpos,
+    input      [ 7:0]  scrvpos,
+    output     [ 7:0]  scr_dout,
+    output     [16:0]  scr_addr,
+    input      [15:0]  scr_data,
+    input              scr_ok,
     // video signals
     output             VBL,
     output             LVBL_dly,
@@ -40,11 +51,6 @@ module jtdd_video(
     output             LHBL_dly,
     output             HS,
     input              flip,
-    // ROM access
-    output reg [14:0]  char_addr,
-    input      [ 7:0]  char_data,
-    input              char_ok,
-    output     [ 6:0]  char_pxl,
     // PROM programming
     input [7:0]        prog_addr,
     input [3:0]        prom_din,
@@ -57,7 +63,7 @@ module jtdd_video(
 
 wire [6:0]  char_pxl;  // called mcol in schematics
 wire [7:0]  obj_pxl=8'd0;  // called ocol in schematics
-wire [7:0]  scr_pxl=8'd0;  // called bcol in schematics
+wire [7:0]  scr_pxl;  // called bcol in schematics
 wire [7:0]  HPOS, VPOS;
 
 jtdd_timing u_timing(
@@ -87,10 +93,31 @@ jtdd_char u_char(
     .HPOS        ( HPOS             ),
     .VPOS        ( VPOS             ),
     .flip        ( flip             ),
-    .char_addr   ( char_addr        ),
+    .rom_addr    ( char_addr        ),
     .rom_data    ( char_data        ),
     .rom_ok      ( char_ok          ),
     .char_pxl    ( char_pxl         )
+);
+
+jtdd_scroll u_scroll(
+    .clk         ( clk              ),
+    .rst         ( rst              ),
+    .pxl_cen     ( pxl_cen          ),
+    .cpu_AB      ( cpu_AB[10:0]     ),
+    .scr_cs      ( scr_cs           ),
+    .cpu_wrn     ( cpu_wrn          ),
+    .cpu_dout    ( cpu_dout         ),
+    .cen_E       ( cen_E            ),
+    .scr_dout    ( scr_dout         ),
+    .HPOS        ( HPOS             ),
+    .VPOS        ( VPOS             ),
+    .scrhpos     ( scrhpos          ),
+    .scrvpos     ( scrvpos          ),
+    .flip        ( flip             ),
+    .rom_addr    ( scr_addr         ),
+    .rom_data    ( scr_data         ),
+    .rom_ok      ( scr_ok           ),
+    .scr_pxl     ( scr_pxl          )
 );
 
 jtdd_colmix u_colmix(

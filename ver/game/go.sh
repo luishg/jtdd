@@ -11,7 +11,12 @@ fi
 
 if [ -e char.bin ]; then
     $JTFRAME/bin/drop1 -l < char.bin > char_hi.bin
-    $JTFRAME/bin/drop1  < char.bin > char_lo.bin
+    $JTFRAME/bin/drop1    < char.bin > char_lo.bin
+fi
+
+if [ -e scr.bin ]; then
+    $JTFRAME/bin/drop1 -l < scr.bin > scr_hi.bin
+    $JTFRAME/bin/drop1    < scr.bin > scr_lo.bin
 fi
 
 MIST=-mist
@@ -42,7 +47,7 @@ fi
 echo "Game ROM length: " $GAME_ROM_LEN
 ../../modules/jtframe/bin/sim.sh $MIST -d GAME_ROM_LEN=$GAME_ROM_LEN \
     -sysname dd -modules ../../modules -d SCANDOUBLER_DISABLE=1 \
-    -videow 256 -videoh 239 \
+    -videow 256 -videoh 240 \
     -d STEREO_GAME -d JT51_NODEBUG $*
 
 if [ -e jt51.log ]; then

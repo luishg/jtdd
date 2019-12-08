@@ -33,7 +33,7 @@ module jtdd_char(
     input      [ 7:0]  VPOS,
     input              flip,
     // ROM access
-    output reg [14:0]  char_addr,
+    output reg [14:0]  rom_addr,
     input      [ 7:0]  rom_data,
     input              rom_ok,
     output reg [ 6:0]  char_pxl
@@ -57,7 +57,7 @@ reg [2:0] pal;
 always @(posedge clk) if(pxl_cen) begin
     case( HPOS[0] ) 
         1'b0: begin
-            char_addr <= { hi_data[1:0], lo_data, HPOS[2:1], VPOS[2:1],~VPOS[0] };
+            rom_addr <= { hi_data[1:0], lo_data, HPOS[2:1], VPOS[2:0] };
             pal       <= hi_data[7:5];
             shift     <= { 
                 rom_data[7], rom_data[5], rom_data[3], rom_data[1],

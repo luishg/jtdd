@@ -99,11 +99,15 @@ always @(posedge clk) begin
         prog_we   <= 1'b1;
         prog_data <= ioctl_data;
         `CLR_ALL
-        if(ioctl_addr[21:16] < SCRZW_ADDR[21:16]) begin // Main/Sound ROM, CHAR ROM
+        if(ioctl_addr[21:16] < ADPCM_1[21:16]) begin // Main/Sound ROM
             prog_addr <= {1'b0, ioctl_addr[21:1]};
             prog_mask <= {ioctl_addr[0], ~ioctl_addr[0]};
             `INFO_MAIN
             `INFO_SND
+        end
+        if(ioctl_addr[21:16] < SCRZW_ADDR[21:16]) begin // ADPCM, CHAR ROM
+            prog_addr <= {1'b0, ioctl_addr[21:1]};
+            prog_mask <= {~ioctl_addr[0], ioctl_addr[0]};
             `INFO_CHAR
         end
         else if(ioctl_addr[21:16] < OBJWZ_ADDR[21:16] ) begin // Scroll    
