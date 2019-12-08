@@ -43,6 +43,12 @@ module jtdd_video(
     output     [16:0]  scr_addr,
     input      [15:0]  scr_data,
     input              scr_ok,
+    // Object
+    input              obj_cs,
+    output     [ 7:0]  obj_dout,
+    output     [17:0]  obj_addr,
+    input      [15:0]  obj_data,
+    input              obj_ok,    
     // video signals
     output             VBL,
     output             LVBL_dly,
@@ -62,7 +68,7 @@ module jtdd_video(
 );
 
 wire [6:0]  char_pxl;  // called mcol in schematics
-wire [7:0]  obj_pxl=8'd0;  // called ocol in schematics
+wire [7:0]  obj_pxl;  // called ocol in schematics
 wire [7:0]  scr_pxl;  // called bcol in schematics
 wire [7:0]  HPOS, VPOS;
 
@@ -118,6 +124,27 @@ jtdd_scroll u_scroll(
     .rom_data    ( scr_data         ),
     .rom_ok      ( scr_ok           ),
     .scr_pxl     ( scr_pxl          )
+);
+
+jtdd_obj u_obj(
+    .clk         ( clk              ),
+    .rst         ( rst              ),
+    .pxl_cen     ( pxl_cen          ),
+    .cpu_AB      ( cpu_AB[8:0]      ),
+    .obj_cs      ( obj_cs           ),
+    .cpu_wrn     ( cpu_wrn          ),
+    .cpu_dout    ( cpu_dout         ),
+    .obj_dout    ( obj_dout         ),
+    // screen
+    .HPOS        ( HPOS             ),
+    .VPOS        ( VPOS             ),
+    .flip        ( flip             ),
+    .HBL         ( HBL              ),
+    // ROM access
+    .rom_addr    ( obj_addr         ),
+    .rom_data    ( obj_data         ),
+    .rom_ok      ( obj_ok           ),
+    .obj_pxl     ( obj_pxl          )
 );
 
 jtdd_colmix u_colmix(

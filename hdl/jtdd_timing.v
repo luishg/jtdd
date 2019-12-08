@@ -32,11 +32,11 @@ module jtdd_timing(
 );
 
 reg [8:0] hn=9'd0;
-reg [7:0] vn=8'd0;
+reg [7:0] vn=8'he0;
 reg [7:0]  m;
 wire hover = hn==9'd383;
 wire [8:0] nextn = hover ? 9'd0 : hn+9'd1;
-reg aux = 1'b0;
+reg aux=1'b0;
 
 always @(posedge clk) begin
     VPOS <= vn ^ {8{flip}};
@@ -58,16 +58,16 @@ always @(posedge clk) if(pxl_cen) begin
     end else if( hover )begin
         HBL <= 1'b0;
         if( &vn ) begin
-            vn <= VBL ? 8'he8 : 8'h8;
+            vn <= (VBL&&!aux) ? 8'he8 : 8'h8;
             VS <= VBL;
         end else begin
             vn <= vn + 8'd1;
-            if( vn == 8'hF6 ) begin
+            if( vn == 8'hF7 ) begin
                 VBL <= 1'b1;
                 aux <= VBL;
             end
-            if( vn == 8'hfe && aux ) VBL <= 1'b0;
         end
+        if( vn == 8'hff && aux ) VBL <= 1'b0;
     end
 end
 

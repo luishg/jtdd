@@ -3,6 +3,7 @@
 ../../hdl/jtdd_timing.v
 ../../hdl/jtdd_char.v
 ../../hdl/jtdd_scroll.v
+../../hdl/jtdd_obj.v
 ../../hdl/jtdd_colmix.v
 
 ../../modules/jtframe/hdl/ram/jtframe_prom.v
