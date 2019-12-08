@@ -28,16 +28,16 @@ dump "localparam CHAR_ADDR"  21j-5 21j-5 # repeated once
 
 # Scroll
 echo // Scroll
-# lower bytes
-dump "localparam SCRZW_ADDR" 21j-a 21j-b 21j-c 21j-d 
-# upper bytes
-dump "localparam SCRXY_ADDR" 21j-e 21j-f 21j-g 21j-h
+    # lower bytes
+    dump "localparam SCRZW_ADDR"  21j-8 21j-9
+    # upper bytes
+    dump "localparam SCRXY_ADDR"  21j-i 21j-j
 ## Objects
 echo // objects
     # lower bytes
-    dump "localparam OBJWZ_ADDR"  21j-8 21j-9
+    dump "localparam OBJWZ_ADDR" 21j-a 21j-b 21j-c 21j-d 
     # upper bytes
-    dump "localparam OBJXY_ADDR"  21j-i 21j-j
+    dump "localparam OBJXY_ADDR" 21j-e 21j-f 21j-g 21j-h
 
 # Not in SDRAM:
 echo // FPGA BRAM:

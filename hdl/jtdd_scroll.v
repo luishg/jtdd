@@ -31,8 +31,8 @@ module jtdd_scroll(
     output reg [ 7:0]  scr_dout,
     input      [ 7:0]  HPOS,
     input      [ 7:0]  VPOS,
-    input      [ 7:0]  scrhpos,
-    input      [ 7:0]  scrvpos,
+    input      [ 8:0]  scrhpos,
+    input      [ 8:0]  scrvpos,
     input              flip,
     // ROM access
     output reg [16:0]  rom_addr,
@@ -47,14 +47,14 @@ wire [ 7:0] hi_data, lo_data;
 reg  [ 8:0] hscr, vscr;
 
 always @(*) begin // may consider latching this if glitches appear
-    hscr = {1'b0, HPOS} + { 1'b0, scrhpos }; // hscr[8] is latched in the original
-    vscr = {1'b0, VPOS} + { 1'b0, scrvpos };
+    hscr = {1'b0, HPOS} + scrhpos; // hscr[8] is latched in the original
+    vscr = {1'b0, VPOS} + scrvpos;
 end
 
 always @(*) begin
     lo_we     = scr_cs && !cpu_wrn && !cpu_AB[0];
     hi_we     = scr_cs && !cpu_wrn &&  cpu_AB[0];
-    scan      = { vscr[8], hscr[7], vscr[7:4], hscr[7:4] };
+    scan      = { vscr[8], hscr[8], vscr[7:4], hscr[7:4] };
     ram_addr  = scr_cs ? cpu_AB[10:1] : scan;
     scr_dout  = cpu_AB[0] ? hi_data : lo_data;
 end

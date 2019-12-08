@@ -90,7 +90,7 @@ wire               char_ok, scr_ok;
 wire       [21:0]  prog_addr;
 wire               prom_prio_we;
 
-wire       [ 7:0]  scrhpos=8'd0, scrvpos=8'd0;
+wire       [ 8:0]  scrhpos=9'h000, scrvpos=9'h100;
 
 assign prog_addr = 22'd0;
 assign dwnld_busy = 1'b0;
@@ -156,16 +156,16 @@ jtdd_video u_video(
 );
 
 // Same as locations inside JTDD.rom file
-localparam BANK_ADDR   = 22'h00000;
-localparam MAIN_ADDR   = 22'h20000;
-localparam SND_ADDR    = 22'h28000;
-localparam ADPCM_1     = 22'h30000;
-localparam ADPCM_2     = 22'h40000;
-localparam CHAR_ADDR   = 22'h50000;
+localparam BANK_ADDR   = 22'h0_0000;
+localparam MAIN_ADDR   = 22'h2_0000;
+localparam SND_ADDR    = 22'h2_8000;
+localparam ADPCM_1     = 22'h3_0000;
+localparam ADPCM_2     = 22'h4_0000;
+localparam CHAR_ADDR   = 22'h5_0000;
 
 // reallocated:
-localparam SCR_ADDR  = 22'h40000;
-localparam OBJ_ADDR  = 22'h80000;
+localparam SCR_ADDR  = 22'h4_0000;
+localparam OBJ_ADDR  = 22'h8_0000;
 
 
 jtframe_rom #(

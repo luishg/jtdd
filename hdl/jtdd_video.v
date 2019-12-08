@@ -37,8 +37,8 @@ module jtdd_video(
     input              char_ok,
     // Scroll
     input              scr_cs,
-    input      [ 7:0]  scrhpos,
-    input      [ 7:0]  scrvpos,
+    input      [ 8:0]  scrhpos,
+    input      [ 8:0]  scrvpos,
     output     [ 7:0]  scr_dout,
     output     [16:0]  scr_addr,
     input      [15:0]  scr_data,

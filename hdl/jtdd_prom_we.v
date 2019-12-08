@@ -44,10 +44,10 @@ localparam ADPCM_2     = 22'h40000;
 localparam CHAR_ADDR   = 22'h50000;
 // Scroll
 localparam SCRZW_ADDR  = 22'h60000;
-localparam SCRXY_ADDR  = 22'hA0000;
+localparam SCRXY_ADDR  = 22'h80000;
 // objects
-localparam OBJWZ_ADDR  = 22'hE0000;
-localparam OBJXY_ADDR  = 22'h100000;
+localparam OBJWZ_ADDR  = 22'hA0000;
+localparam OBJXY_ADDR  = 22'hE0000;
 // FPGA BRAM:
 localparam MCU_ADDR    = 22'h120000;
 localparam PROM_ADDR   = 22'h124000;
@@ -90,8 +90,9 @@ always @(posedge clk) begin
 end
 
 wire [3:0] scr_msb = ioctl_addr[19:16]-4'd6;
-wire [4:0] obj_msb = ioctl_addr[20:16]-5'he;
-wire       scr_top = ioctl_addr[19:17]>=3'b101;
+wire [4:0] obj_msb = ioctl_addr[20:16]-5'hA;
+wire       scr_top = scr_msb[1];
+wire       obj_top = obj_msb[2];
 
 always @(posedge clk) begin
     if( set_done ) set_strobe <= 1'b0;
@@ -112,12 +113,12 @@ always @(posedge clk) begin
         end
         else if(ioctl_addr[21:16] < OBJWZ_ADDR[21:16] ) begin // Scroll    
             prog_mask <= scr_top ? 2'b01 : 2'b10;
-            prog_addr <= { 5'd4+{1'b0,scr_top ? scr_msb-4'h4 : scr_msb}, ioctl_addr[15:0] }; // original bit order
+            prog_addr <= { 5'd4+{1'b0,scr_top ? scr_msb-4'h2 : scr_msb}, ioctl_addr[15:0] }; // original bit order
             `INFO_SCR
         end
         else if(ioctl_addr[21:16] < MCU_ADDR[21:16] ) begin // Objects
-            prog_mask <= !ioctl_addr[20] ? 2'b10 : 2'b01;
-            prog_addr <= { 5'd8+( ioctl_addr[20]  ? obj_msb - 5'd2 : obj_msb), ioctl_addr[15:0] };
+            prog_mask <= !obj_top ? 2'b10 : 2'b01;
+            prog_addr <= { 5'd8+( obj_top  ? obj_msb - 5'd4 : obj_msb), ioctl_addr[15:0] };
             `INFO_OBJ
         end
         else if(ioctl_addr[21:12] < PROM_ADDR[21:12] ) begin // MCU
