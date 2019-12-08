@@ -16,7 +16,7 @@
     Version: 1.0
     Date: 2-12-2017 */
 
-// Schematcics 8/10 and 9/10 BACK
+// Schematics 8/10 and 9/10 BACK
 // Scroll layer
 
 module jtdd_scroll(
@@ -60,26 +60,27 @@ always @(*) begin
 end
 
 reg  [15:0] shift;
-reg  [ 3:0] pal;
-reg         hflip;
-wire [ 3:0] mux = hflip ? shift[15:12] : shift[3:0];
+reg  [ 3:0] pal, pal0;
+reg         hflip, hflip0;
+wire [ 3:0] mux = hflip0 ? shift[15:12] : shift[3:0]; //{shift[2], shift[3], shift[0], shift[1]};//shift[3:0];
 
 // pixel output
 always @(posedge clk) if(pxl_cen) begin
+    scr_pxl  <= { pal0, mux };
     case( HPOS[1:0] ) 
         2'b0: begin
             rom_addr  <= { hi_data[2:0], lo_data, hscr[3:2]^{2{hi_data[6]}}, vscr[3:0] };
             pal       <= { hi_data[7], hi_data[5:3] }; // bit 7 affects priority
+            pal0      <= pal;
+            hflip0    <= hflip;
             hflip     <= hi_data[6];
             shift     <= { 
                 rom_data[15], rom_data[11], rom_data[7], rom_data[3],
                 rom_data[14], rom_data[10], rom_data[6], rom_data[2],
                 rom_data[13], rom_data[ 9], rom_data[5], rom_data[1],
                 rom_data[12], rom_data[ 8], rom_data[4], rom_data[0] };
-            scr_pxl  <= { pal, mux };
         end
         default: begin
-            scr_pxl  <= { pal, shift[3:0] };
             shift    <= hflip ? (shift<<4) : (shift>>4);
         end
     endcase

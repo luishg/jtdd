@@ -52,20 +52,21 @@ always @(*) begin
 end
 
 reg [7:0] shift;
-reg [2:0] pal;
+reg [2:0] pal, pal0;
 
 always @(posedge clk) if(pxl_cen) begin
+    char_pxl  <= { pal0, shift[3:0] };
     case( HPOS[0] ) 
         1'b0: begin
             rom_addr <= { hi_data[1:0], lo_data, HPOS[2:1], VPOS[2:0] };
             pal       <= hi_data[7:5];
+            pal0      <= pal;
             shift     <= { 
                 rom_data[7], rom_data[5], rom_data[3], rom_data[1],
                 rom_data[6], rom_data[4], rom_data[2], rom_data[0] };
-            char_pxl  <= { pal, shift[7:4] };
         end
         1'b1: begin
-            char_pxl  <= { pal, shift[3:0] };
+            shift <= shift >> 4;
         end
     endcase
 end

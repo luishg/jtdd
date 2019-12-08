@@ -90,7 +90,7 @@ wire               char_ok, scr_ok;
 wire       [21:0]  prog_addr;
 wire               prom_prio_we;
 
-wire       [ 8:0]  scrhpos=9'h000, scrvpos=9'h100;
+wire       [ 8:0]  scrhpos=9'h017, scrvpos=9'h100;
 
 assign prog_addr = 22'd0;
 assign dwnld_busy = 1'b0;

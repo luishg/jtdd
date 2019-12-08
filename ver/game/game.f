@@ -13,3 +13,5 @@
 ../../modules/jtframe/hdl/sdram/jtframe_rom.v
 ../../modules/jtframe/hdl/sdram/jtframe_romflex.v
 ../../modules/jtframe/hdl/sdram/jtframe_romrq.v
+# Other
+../../modules/jtframe/hdl/jtframe_sh.v

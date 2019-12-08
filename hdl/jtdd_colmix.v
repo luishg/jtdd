@@ -27,8 +27,8 @@ module jtdd_colmix(
     // blanking
     input              VBL,
     input              HBL,
-    output reg         LVBL_dly,
-    output reg         LHBL_dly,
+    output             LVBL_dly,
+    output             LHBL_dly,
     // Pixel inputs
     input [6:0]        char_pxl,  // called mcol in schematics
     input [7:0]        obj_pxl,  // called ocol in schematics
@@ -64,18 +64,23 @@ always @(posedge clk) begin
     else 
         case( prio )
             default: pal_addr <= { 2'b00, char_pxl };
-            2'd2:    pal_addr <= { 2'b01, obj_pxl };
-            2'd3:    pal_addr <= { 2'b10, scr_pxl };
+            2'd2:    pal_addr <= { 2'b01, obj_pxl[6:0] };
+            2'd3:    pal_addr <= { 2'b10, scr_pxl[6:0] };
         endcase
 
 end
 
 wire BL = VBL | HBL;
 
+jtframe_sh #(.width(2), .stages(5)) u_sh(
+    .clk    ( clk                   ),
+    .clk_en ( pxl_cen               ),
+    .din    ( ~{VBL, HBL}           ),
+    .drop   ( {LVBL_dly, LHBL_dly } )
+);
+
 always @(posedge clk) if(pxl_cen) begin
     { blue, green, red } <= BL ? 12'd0 : { pal_b, pal_gr };
-    LVBL_dly <= ~VBL;
-    LHBL_dly <= ~HBL;
 end
 
 jtframe_ram #(.aw(9),.simfile("pal_gr.bin")) u_pal_gr(

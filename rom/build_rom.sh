@@ -28,6 +28,9 @@ dump "localparam CHAR_ADDR"  21j-5 21j-5 # repeated once
 
 # Scroll
 echo // Scroll
+// 8 9 i j wrong colours
+// i j 8 9
+// j i 9 8 wrong bank
     # lower bytes
     dump "localparam SCRZW_ADDR"  21j-8 21j-9
     # upper bytes
