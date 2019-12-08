@@ -51,11 +51,12 @@ always @(*) begin
     char_dout = cpu_AB[0] ? hi_data : lo_data;
 end
 
-reg [7:0] shift;
-reg [2:0] pal, pal0;
+reg  [7:0] shift;
+reg  [2:0] pal, pal0;
+wire [3:0] mux = flip ? shift[7:4] : shift[3:0];
 
 always @(posedge clk) if(pxl_cen) begin
-    char_pxl  <= { pal0, shift[3:0] };
+    char_pxl  <= { pal0, mux };
     case( HPOS[0] ) 
         1'b0: begin
             rom_addr <= { hi_data[1:0], lo_data, HPOS[2:1], VPOS[2:0] };
@@ -66,7 +67,7 @@ always @(posedge clk) if(pxl_cen) begin
                 rom_data[6], rom_data[4], rom_data[2], rom_data[0] };
         end
         1'b1: begin
-            shift <= shift >> 4;
+            shift <= flip ? (shift<<4) : (shift >> 4);
         end
     endcase
 end

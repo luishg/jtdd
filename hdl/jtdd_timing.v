@@ -39,7 +39,7 @@ wire [8:0] nextn = hover ? 9'd0 : hn+9'd1;
 reg aux = 1'b0;
 
 always @(posedge clk) begin
-    VPOS <= vn ^ flip;
+    VPOS <= vn ^ {8{flip}};
 end
 
 assign M = m[5:0];

@@ -73,7 +73,7 @@ always @(posedge clk) if(pxl_cen) begin
             pal       <= { hi_data[7], hi_data[5:3] }; // bit 7 affects priority
             pal0      <= pal;
             hflip0    <= hflip;
-            hflip     <= hi_data[6];
+            hflip     <= hi_data[6] ^ flip;
             shift     <= { 
                 rom_data[15], rom_data[11], rom_data[7], rom_data[3],
                 rom_data[14], rom_data[10], rom_data[6], rom_data[2],
