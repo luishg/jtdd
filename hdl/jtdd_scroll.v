@@ -71,7 +71,7 @@ always @(posedge clk) if(pxl_cen) begin
     scr_pxl  <= { pal0, mux };
     case( HPOS[1:0] ) 
         2'b0: begin
-            rom_addr  <= { hi_data[2:0], lo_data, hscr[3:2]^{2{hi_data[6]}}, vscr[3:0] };
+            rom_addr  <= { hi_data[2:0], lo_data, vscr[3:0], hscr[3:2]^{2{hi_data[6]}} };
             pal       <= { hi_data[7], hi_data[5:3] }; // bit 7 affects priority
             pal0      <= pal;
             hflip0    <= hflip;

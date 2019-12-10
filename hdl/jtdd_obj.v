@@ -181,7 +181,7 @@ always @(posedge clk, posedge rst) begin
             pxl_cnt <= 4'd0;
         end
         if( copy || copying ) begin
-            rom_addr  <= { scan_attr2[3:0], scan_id, pxl_cnt[3:2], scan_y[3:0] };
+            rom_addr  <= { scan_attr2[3:0], scan_id, scan_y[3:0], pxl_cnt[3:2] };
         end
         if( copying ) begin
             if(rom_ok) begin

@@ -55,11 +55,12 @@ localparam PROM_ADDR   = 22'h124000;
 
 `ifdef SIMULATION
 // simulation watchers
-reg w_main, w_snd, w_char, w_scr, w_obj, w_mcu, w_prom;
-`define CLR_ALL   {w_main, w_snd, w_char, w_scr, w_obj, w_mcu, w_prom} <= 7'd0;
+reg w_main, w_snd, w_char, w_scr, w_obj, w_mcu, w_prom, w_adpcm;
+`define CLR_ALL   {w_main, w_snd, w_char, w_scr, w_obj, w_mcu, w_prom, w_adpcm} <= 8'd0;
 `define INFO_MAIN  w_main <= 1'b1;
 `define INFO_SND   w_snd  <= 1'b1;
 `define INFO_CHAR  w_char <= 1'b1;
+`define INFO_ADPCM w_adpcm<= 1'b1;
 `define INFO_SCR   w_scr  <= 1'b1;
 `define INFO_OBJ   w_obj  <= 1'b1;
 `define INFO_MCU   w_mcu  <= 1'b1;
@@ -70,6 +71,7 @@ reg w_main, w_snd, w_char, w_scr, w_obj, w_mcu, w_prom;
 `define INFO_MAIN 
 `define INFO_SND  
 `define INFO_CHAR 
+`define INFO_ADPCM 
 `define INFO_SCR  
 `define INFO_OBJ  
 `define INFO_MCU  
@@ -106,19 +108,26 @@ always @(posedge clk) begin
             `INFO_MAIN
             `INFO_SND
         end
-        if(ioctl_addr[21:16] < SCRZW_ADDR[21:16]) begin // ADPCM, CHAR ROM
+        else if(ioctl_addr[21:16] < CHAR_ADDR[21:16]) begin // ADPCM
             prog_addr <= {1'b0, ioctl_addr[21:1]};
             prog_mask <= {~ioctl_addr[0], ioctl_addr[0]};
             `INFO_CHAR
         end
+        else if(ioctl_addr[21:16] < SCRZW_ADDR[21:16]) begin // CHAR ROM
+            prog_addr <= {1'b0, ioctl_addr[21:5], ioctl_addr[2:0], ioctl_addr[4]};
+            prog_mask <= {~ioctl_addr[3], ioctl_addr[3]};
+            `INFO_CHAR
+        end
         else if(ioctl_addr[21:16] < OBJWZ_ADDR[21:16] ) begin // Scroll    
             prog_mask <= scr_top ? 2'b01 : 2'b10;
-            prog_addr <= { 5'd4+{1'b0,scr_top ? scr_msb-4'h2 : scr_msb}, ioctl_addr[15:0] }; // original bit order
+            prog_addr <= { 5'd4+{1'b0,scr_top ? scr_msb-4'h2 : scr_msb}, 
+                ioctl_addr[15:6], ioctl_addr[3:0], ioctl_addr[5:4] };
             `INFO_SCR
         end
         else if(ioctl_addr[21:16] < MCU_ADDR[21:16] ) begin // Objects
             prog_mask <= !obj_top ? 2'b10 : 2'b01;
-            prog_addr <= { 5'd8+( obj_top  ? obj_msb - 5'd4 : obj_msb), ioctl_addr[15:0] };
+            prog_addr <= { 5'd8+( obj_top  ? obj_msb - 5'd4 : obj_msb), 
+                ioctl_addr[15:6], ioctl_addr[3:0], ioctl_addr[5:4] };
             `INFO_OBJ
         end
         else if(ioctl_addr[21:12] < PROM_ADDR[21:12] ) begin // MCU
