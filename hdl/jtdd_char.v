@@ -19,6 +19,8 @@
 // Schematcics 4/9 MAP
 // Character layer
 
+`timescale 1ns/1ps
+
 module jtdd_char(
     input              clk,
     input              rst,

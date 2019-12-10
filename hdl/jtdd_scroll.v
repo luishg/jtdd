@@ -19,6 +19,8 @@
 // Schematics 8/10 and 9/10 BACK
 // Scroll layer
 
+`timescale 1ns/1ps
+
 module jtdd_scroll(
     input              clk,
     input              rst,

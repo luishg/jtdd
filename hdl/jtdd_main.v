@@ -22,6 +22,7 @@
 // E,Q: 3 MHz
 // Q is 1/4th of wave advanced
 
+`timescale 1ns/1ps
 
 module jtdd_main(
     input              clk,

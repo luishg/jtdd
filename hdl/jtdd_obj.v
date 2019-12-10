@@ -20,6 +20,8 @@
 // Object layer
 // Max 32 sprites per line
 
+`timescale 1ns/1ps
+
 module jtdd_obj(
     input              clk,
     input              rst,
@@ -41,7 +43,6 @@ module jtdd_obj(
     output reg [ 7:0]  obj_pxl
 );
 
-assign rom_addr = 18'd0;
 assign obj_pxl  = 8'd0;
 
 // RAM area shared with CPU
@@ -153,7 +154,7 @@ end
 
 jtframe_ram #(.aw(9),.simfile("obj.bin")) u_ram(
     .clk    ( clk         ),
-    .cen    ( cen_E       ),
+    .cen    ( 1'b1        ),
     .data   ( cpu_dout    ),
     .addr   ( ram_addr    ),
     .we     ( ram_we      ),
@@ -166,6 +167,9 @@ reg        copying;
 wire       hflip = scan_attr[3];
 wire       vflip = scan_attr[2];
 wire [3:0] pal   = scan_attr2[7:4];
+
+reg  [15:0] shift;
+
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
         copy_done <= 1'b0;

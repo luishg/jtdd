@@ -1,12 +1,9 @@
 [submodule "modules/jtframe"]
 	path = modules/jtframe
-	url = git@github.com:jotego/jtframe.git
+	url  = https://github.com/jotego/jtframe 
 [submodule "modules/mc6809"]
 	path = modules/mc6809
-	url = git@github.com:cavnex/mc6809.git
+	url  = https://github.com/cavnex/mc6809
 [submodule "jt51"]
-	path = jt51
-	url = /home/jtejada/github/jt_gng/modules/jt51
-[submodule "modules/jt51"]
 	path = modules/jt51
-	url = /home/jtejada/github/jt_gng/modules/jt51
+	url = https://github.com/jotego/jt51
