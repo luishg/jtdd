@@ -131,6 +131,7 @@ always @(posedge clk, posedge rst) begin
                 copy    <= 1'b1;
             end
             6: begin
+                copy <= 1'b0;
                 if( copy_done ) begin
                     if( !scan_done & ~&maxline ) begin
                         state    <= 1;
@@ -163,34 +164,42 @@ jtframe_ram #(.aw(9),.simfile("obj.bin")) u_ram(
 
 // pixel drawing
 reg  [3:0] pxl_cnt=0;
+reg  [8:0] posx;
 reg        copying;
 wire       hflip = scan_attr[3];
 wire       vflip = scan_attr[2];
 wire [3:0] pal   = scan_attr2[7:4];
 
 reg  [15:0] shift;
+reg         ok_dly;
 
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
         copy_done <= 1'b0;
-        copying <= 1'b0;
+        copying   <= 1'b0;
+        ok_dly    <= 1'b0;
     end else begin
+        ok_dly <= rom_ok;
         copy_done <= 1'b0;
         if( copy && !copying) begin
             copying <= 1'b1;
             pxl_cnt <= 4'd0;
+            posx    <= { scan_attr[1], scan_x };
+            ok_dly  <= 1'b0;
         end
         if( copy || copying ) begin
             rom_addr  <= { scan_attr2[3:0], scan_id, scan_y[3:0], pxl_cnt[3:2] };
         end
         if( copying ) begin
-            if(rom_ok) begin
+            if(ok_dly && rom_ok) begin
                 pxl_cnt <= pxl_cnt+1;
+                posx    <= posx + 9'd1;
                 if(pxl_cnt==4'hf) begin
                     copy_done<=1'b1;
                     copying  <=1'b0;
                 end
             end
+            shift <= hflip ? (shift<<4) : (shift>>4);
             case( pxl_cnt[1:0] ) 
                 2'b0: begin
                     shift     <= { 
@@ -200,7 +209,6 @@ always @(posedge clk, posedge rst) begin
                         rom_data[12], rom_data[ 8], rom_data[4], rom_data[0] };
                 end
                 default: begin
-                    shift    <= hflip ? (shift<<4) : (shift>>4);
                 end
             endcase            
         end
