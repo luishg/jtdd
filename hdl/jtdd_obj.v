@@ -40,7 +40,7 @@ module jtdd_obj(
     output reg [17:0]  rom_addr,
     input      [15:0]  rom_data,
     input              rom_ok,
-    output reg [ 7:0]  obj_pxl
+    output     [ 7:0]  obj_pxl
 );
 
 // RAM area shared with CPU
@@ -164,6 +164,7 @@ jtframe_ram #(.aw(9),.simfile("obj.bin")) u_ram(
 
 // pixel drawing
 reg  [ 3:0] pxl_cnt=0;
+wire [ 1:0] cnt_msb_next = pxl_cnt[3:2] + 2'd1;
 reg  [ 8:0] posx;
 reg  [15:0] shift;
 reg         copying;
@@ -172,9 +173,12 @@ wire        vflip = scan_attr[2];
 wire [ 3:0] pal   = scan_attr2[7:4];
 wire [ 3:0] col   = hflip ? shift[15:12] : shift[3:0];
 reg         ok_dly;
-reg         wait_buf;
+reg  [ 3:0] wait_buf;
 
-always @(posedge clk) wait_buf <= pxl_cen;
+always @(posedge clk) begin
+    wait_buf[0]   <= pxl_cen;
+    wait_buf[3:1] <= wait_buf[2:0];
+end
 
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
@@ -192,12 +196,12 @@ always @(posedge clk, posedge rst) begin
             posx    <= { scan_attr[1], scan_x };
             ok_dly  <= 1'b0;
             rom_addr  <= { scan_attr2[3:0], scan_id, scan_y[3:0], 
-                {~pxl_cnt[3], pxl_cnt[2]}^{2{hflip}} };
+                2'b00^{2{hflip}} };
         end
         if( copying ) begin
-            if(ok_dly && rom_ok && !wait_buf) begin
+            if(ok_dly && rom_ok && !wait_buf[0] ) begin
                 pxl_cnt <= pxl_cnt+1;
-                posx    <= posx + 9'd1;
+                if( pxl_cnt!=4'd0 ) posx <= posx + 9'd1;
                 if(pxl_cnt==4'hf) begin
                     copy_done<=1'b1;
                     copying  <=1'b0;
@@ -214,7 +218,7 @@ always @(posedge clk, posedge rst) begin
                 end
                 2'b1: begin
                     rom_addr  <= { scan_attr2[3:0], scan_id, scan_y[3:0], 
-                        {~pxl_cnt[3], pxl_cnt[2]}^{2{hflip}} };
+                        cnt_msb_next^{2{hflip}} };
                 end
             endcase            
         end
@@ -224,10 +228,12 @@ end
 // Line buffers
 reg  [7:0] rd_addr, ln_data;
 reg  [9:0] ln_addr;
+reg  [7:0] pre_dly;
 wire [7:0] ln_dout;
 reg        ln_we;
 reg        copying_dly;
-reg        wait_buf_dly;
+
+localparam obj_dly = 7;
 
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
@@ -235,22 +241,20 @@ always @(posedge clk, posedge rst) begin
         ln_addr      <= 10'd0;
         rd_addr      <= 8'd0;
         ln_data      <= 8'd0;
-        wait_buf_dly <= 1'b0;
         copying_dly  <= 1'b0;
     end
     else begin
         copying_dly <= copying & ok_dly & rom_ok;
         if( HBL ) begin // clear memory during the blank
-            rd_addr <= 8'd0;
+            rd_addr <= 9'd0-obj_dly;
             ln_data <= 8'h0;
             ln_addr[8:0] <= ln_addr[8:0] + 9'd1;
             ln_we   <= 1'b1;
         end else begin
-            wait_buf_dly <= wait_buf;
             ln_we        <= 1'b0;
 
-            if( wait_buf_dly ) obj_pxl <= ln_dout;
-            if( wait_buf ) begin
+            if( wait_buf[3] ) pre_dly <= ln_dout;
+            if( wait_buf[1] ) begin
                 ln_addr <= { line, 1'b0, ~rd_addr };
                 rd_addr <= rd_addr + 8'd1;
                 ln_we   <= 1'b0;
@@ -272,5 +276,14 @@ jtframe_ram #(.aw(10)) u_line(
     .we     ( ln_we       ),
     .q      ( ln_dout     )
 );
+
+assign obj_pxl = pre_dly;
+
+// jtframe_sh #(.stages(7),.width(8)) u_dly(
+//     .clk    ( clk       ),
+//     .clk_en ( pxl_cen   ),
+//     .din    ( pre_dly   ),
+//     .drop   ( obj_pxl   )
+// );
 
 endmodule
