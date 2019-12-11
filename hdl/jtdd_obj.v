@@ -125,6 +125,8 @@ always @(posedge clk, posedge rst) begin
             end
             5: begin
                 scan_x  <= obj_dout; // +4
+                if( scan_attr[4])
+                    scan_id[0] <= scan_id[0]^scan_y[4];
                 state   <= 6;
                 copy    <= 1'b1;
             end
