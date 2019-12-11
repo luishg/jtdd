@@ -136,6 +136,7 @@ always @(*) begin
         endcase
     end else begin
         rom_cs    = A[15] | A[14];
+        banked_cs = ~A[15] & A[14];
     end
 end
 
@@ -217,20 +218,7 @@ always @(*)
 
 
 // RAM, 8kB
-wire cpu_ram_we = ram_cs && !RnW;
 assign cpu_AB = A[12:0];
-
-wire [12:0] RAM_addr = blcnten ? { 4'hf, obj_AB } : cpu_AB;
-wire RAM_we   = blcnten ? 1'b0 : cpu_ram_we;
-
-jtframe_ram #(.aw(13)) u_ram(
-    .clk        ( clk       ),
-    .cen        ( cen6      ),
-    .addr       ( RAM_addr  ),
-    .data       ( cpu_dout  ),
-    .we         ( RAM_we    ),
-    .q          ( ram_dout  )
-);
 
 reg [7:0] cpu_din;
 
@@ -244,15 +232,9 @@ always @(*)
         default:   cpu_din =  rom_data;
     endcase
 
-always @(A,bank) begin
-    rom_addr[12:0] = A[12:0];
-    casez( A[15:13] )
-        3'b1??: rom_addr[16:13] = { 2'h0, A[14:13] }; // 8N, 9N (32kB) 0x8000-0xFFFF
-        3'b011: rom_addr[16:13] = 4'b101; // 10N - 0x6000-0x7FFF (8kB)
-        3'b010:  // 0x4000-0x5FFF
-          rom_addr[16:13] = bank==3'd4 ? 4'b100 : {2'd0,bank[1:0]}+4'b110; // 13N
-        default: rom_addr[16:13] = 4'd0;
-    endcase
+always @(*) begin
+    rom_addr[13:0] =  cpu_AB[13:0];
+    rom_addr[17:14]= banked_cs ? {1'b0,bank} : {3'b100, cpu_AB[14]};
 end
 
 // Bus access
@@ -269,18 +251,6 @@ always @(posedge clk) if(cen6) begin
         if(last_LVBL && !LVBL ) nIRQ<=1'b0 | ~dip_pause; // when LVBL goes low
 end
 
-jtframe_z80wait #(2) u_wait(
-    .rst_n      ( nRESET    ),
-    .clk        ( clk       ),
-    .cpu_cen    ( cpu_cen   ),
-    // manage access to shared memory
-    .dev_busy   ( { scr_busy, char_busy } ),
-    // manage access to ROM data from SDRAM
-    .rom_cs     ( rom_cs    ),
-    .rom_ok     ( rom_ok    ),
-
-    .wait_n     ( MRDY      )
-);
 
 wire nIRQ, nFIRQ, nNMI;
 
