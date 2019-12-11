@@ -161,16 +161,16 @@ jtframe_ram #(.aw(9),.simfile("obj.bin")) u_ram(
 );
 
 // pixel drawing
-reg  [3:0] pxl_cnt=0;
-reg  [8:0] posx;
-reg        copying;
-wire       hflip = scan_attr[3];
-wire       vflip = scan_attr[2];
-wire [3:0] pal   = scan_attr2[7:4];
-wire [3:0] col   = hflip ? shift[15:12] : shift[3:0];
+reg  [ 3:0] pxl_cnt=0;
+reg  [ 8:0] posx;
 reg  [15:0] shift;
+reg         copying;
+wire        hflip = ~scan_attr[3];
+wire        vflip = scan_attr[2];
+wire [ 3:0] pal   = scan_attr2[7:4];
+wire [ 3:0] col   = hflip ? shift[15:12] : shift[3:0];
 reg         ok_dly;
-reg        wait_buf;
+reg         wait_buf;
 
 always @(posedge clk) wait_buf <= pxl_cen;
 
@@ -187,11 +187,10 @@ always @(posedge clk, posedge rst) begin
         if( copy && !copying) begin
             copying <= 1'b1;
             pxl_cnt <= 4'd0;
-            posx    <= { 1'b0, /*scan_attr[1],*/ scan_x };
+            posx    <= { scan_attr[1], scan_x };
             ok_dly  <= 1'b0;
-        end
-        if( copy || copying ) begin
-            rom_addr  <= { scan_attr2[3:0], scan_id, scan_y[3:0], pxl_cnt[3:2] };
+            rom_addr  <= { scan_attr2[3:0], scan_id, scan_y[3:0], 
+                {~pxl_cnt[3], pxl_cnt[2]}^{2{hflip}} };
         end
         if( copying ) begin
             if(ok_dly && rom_ok && !wait_buf) begin
@@ -201,8 +200,8 @@ always @(posedge clk, posedge rst) begin
                     copy_done<=1'b1;
                     copying  <=1'b0;
                 end
+                shift <= hflip ? (shift<<4) : (shift>>4);
             end
-            shift <= hflip ? (shift<<4) : (shift>>4);
             case( pxl_cnt[1:0] ) 
                 2'b0: begin
                     shift     <= { 
@@ -211,7 +210,9 @@ always @(posedge clk, posedge rst) begin
                         rom_data[13], rom_data[ 9], rom_data[5], rom_data[1],
                         rom_data[12], rom_data[ 8], rom_data[4], rom_data[0] };
                 end
-                default: begin
+                2'b1: begin
+                    rom_addr  <= { scan_attr2[3:0], scan_id, scan_y[3:0], 
+                        {~pxl_cnt[3], pxl_cnt[2]}^{2{hflip}} };
                 end
             endcase            
         end
@@ -236,9 +237,10 @@ always @(posedge clk, posedge rst) begin
         copying_dly  <= 1'b0;
     end
     else begin
-        copying_dly <= copying;
+        copying_dly <= copying & ok_dly & rom_ok;
         if( HBL ) begin // clear memory during the blank
-            ln_data <= 8'h00;
+            rd_addr <= 8'd0;
+            ln_data <= 8'h0;
             ln_addr[8:0] <= ln_addr[8:0] + 9'd1;
             ln_we   <= 1'b1;
         end else begin
@@ -247,7 +249,7 @@ always @(posedge clk, posedge rst) begin
 
             if( wait_buf_dly ) obj_pxl <= ln_dout;
             if( wait_buf ) begin
-                ln_addr <= { line, 1'b0, rd_addr };
+                ln_addr <= { line, 1'b0, ~rd_addr };
                 rd_addr <= rd_addr + 8'd1;
                 ln_we   <= 1'b0;
             end

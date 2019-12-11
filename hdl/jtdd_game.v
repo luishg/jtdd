@@ -80,7 +80,7 @@ wire       [ 7:0]  cpu_dout=8'd0;
 wire               cen_E;
 wire       [ 7:0]  char_dout, scr_dout, obj_dout;
 // video signals
-wire               VBL, HBL, VS, HS;
+wire               VBL, HBL;
 wire               flip = 1'b0;
 // ROM access
 wire       [14:0]  char_addr;
@@ -90,7 +90,6 @@ wire       [17:0]  obj_addr;
 wire       [15:0]  scr_data, obj_data;
 wire               char_ok, scr_ok, obj_ok;
 // PROM programming
-wire       [21:0]  prog_addr;
 wire               prom_prio_we;
 
 wire       [ 8:0]  scrhpos=9'h1ce, scrvpos=9'h0f0;
@@ -119,49 +118,50 @@ jtframe_cen48 u_cen(
 );
 
 jtdd_video u_video(
-    .clk          (  clk          ),
-    .rst          (  rst          ),
-    .pxl_cen      (  pxl_cen      ),
-    .cen12        (  cen12        ),
-    .cpu_AB       (  cpu_AB       ),
-    .pal_cs       (  pal_cs       ),
-    .char_cs      (  char_cs      ),
-    .scr_cs       (  scr_cs       ),
-    .obj_cs       (  obj_cs       ),
-    .cpu_wrn      (  cpu_wrn      ),
-    .cpu_dout     (  cpu_dout     ),
-    .cen_E        (  cen_E        ),
-    .char_dout    (  char_dout    ),
-    .scr_dout     (  scr_dout     ),
-    .obj_dout     (  obj_dout     ),
+    .clk          (  clk             ),
+    .rst          (  rst             ),
+    .pxl_cen      (  pxl_cen         ),
+    .cen12        (  cen12           ),
+    .cpu_AB       (  cpu_AB          ),
+    .pal_cs       (  pal_cs          ),
+    .char_cs      (  char_cs         ),
+    .scr_cs       (  scr_cs          ),
+    .obj_cs       (  obj_cs          ),
+    .cpu_wrn      (  cpu_wrn         ),
+    .cpu_dout     (  cpu_dout        ),
+    .cen_E        (  cen_E           ),
+    .char_dout    (  char_dout       ),
+    .scr_dout     (  scr_dout        ),
+    .obj_dout     (  obj_dout        ),
     // Scroll position
-    .scrhpos      ( scrhpos       ),
-    .scrvpos      ( scrvpos       ),
+    .scrhpos      ( scrhpos          ),
+    .scrvpos      ( scrvpos          ),
     // video signals
-    .VBL          (  VBL          ),
-    .LVBL_dly     (  LVBL_dly     ),
-    .VS           (  VS           ),
-    .HBL          (  HBL          ),
-    .LHBL_dly     (  LHBL_dly     ),
-    .HS           (  HS           ),
-    .flip         (  flip         ),
+    .VBL          (  VBL             ),
+    .LVBL_dly     (  LVBL_dly        ),
+    .VS           (  VS              ),
+    .HBL          (  HBL             ),
+    .LHBL_dly     (  LHBL_dly        ),
+    .HS           (  HS              ),
+    .flip         (  flip            ),
     // ROM access
-    .char_addr    (  char_addr    ),
-    .char_data    (  char_data    ),
-    .char_ok      (  char_ok      ),
-    .scr_addr     (  scr_addr     ),
-    .scr_data     (  scr_data     ),
-    .scr_ok       (  scr_ok       ),
-    .obj_addr     (  obj_addr     ),
-    .obj_data     (  obj_data     ),
-    .obj_ok       (  obj_ok       ),
+    .char_addr    (  char_addr       ),
+    .char_data    (  char_data       ),
+    .char_ok      (  char_ok         ),
+    .scr_addr     (  scr_addr        ),
+    .scr_data     (  scr_data        ),
+    .scr_ok       (  scr_ok          ),
+    .obj_addr     (  obj_addr        ),
+    .obj_data     (  obj_data        ),
+    .obj_ok       (  obj_ok          ),
     // PROM programming
-    .prog_addr    (  prog_addr[7:0]    ),
-    .prom_prio_we (  prom_prio_we ),
+    .prog_addr    (  prog_addr[7:0]  ),
+    .prom_prio_we (  prom_prio_we    ),
+    .prom_din     (  prog_data[3:0]  ),
     // Pixel output
-    .red          (  red          ),
-    .green        (  green        ),
-    .blue         (  blue         )
+    .red          (  red             ),
+    .green        (  green           ),
+    .blue         (  blue            )
 );
 
 // Same as locations inside JTDD.rom file
