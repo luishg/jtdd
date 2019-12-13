@@ -170,7 +170,7 @@ always @(posedge clk or posedge rst) begin
             scrvpos[8] <= cpu_dout[1];
             flip       <= cpu_dout[2];
             snd_rstb   <= cpu_dout[3];
-            mcu_haltn  <= cpu_dout[4];
+            mcu_haltn  <=~cpu_dout[4];
             bank       <= cpu_dout[7:5];
         end
     end
@@ -241,6 +241,8 @@ always @(negedge clk) begin
 end
 
 // cycle accurate core
+wire [111:0] RegData;
+
 mc6809i u_cpu(
     .D       ( cpu_din ),
     .DOut    ( cpu_dout),
@@ -260,7 +262,31 @@ mc6809i u_cpu(
     .nDMABREQ( 1'b1    ),
     .nHALT   ( 1'b1    ),   
     .nRESET  ( nRESET  ),
-    .RegData (         )
+    .RegData ( RegData )
 );
+`ifdef SIMULATION
+wire [ 7:0] reg_a  = RegData[7:0];
+wire [ 7:0] reg_b  = RegData[15:8];
+wire [15:0] reg_x  = RegData[31:16];
+wire [15:0] reg_y  = RegData[47:32];
+wire [15:0] reg_s  = RegData[63:48];
+wire [15:0] reg_u  = RegData[79:64];
+wire [ 7:0] reg_cc = RegData[87:80];
+wire [ 7:0] reg_dp = RegData[95:88];
+wire [15:0] reg_pc = RegData[111:96];
+reg [95:0] last_regdata;
+
+integer fout;
+initial begin
+    fout = $fopen("m6809.log","w");
+end
+always @(posedge rom_cs) begin
+    last_regdata <= RegData[95:0];
+    if( last_regdata != RegData[95:0] ) begin
+        $fwrite(fout,"%X, X %X, Y %X, A %X, B %X\n",
+            reg_pc, reg_x, reg_y, reg_a, reg_b);
+    end
+end
+`endif
 
 endmodule // jtdd_main
