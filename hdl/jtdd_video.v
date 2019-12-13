@@ -27,7 +27,7 @@ module jtdd_video(
     input      [12:0]  cpu_AB,
     input              cpu_wrn,
     input      [ 7:0]  cpu_dout,
-    input              cen_E,
+    input              cen_Q,
     // Palette
     input              pal_cs,
     output     [ 7:0]  pal_dout,
@@ -58,6 +58,7 @@ module jtdd_video(
     output             HBL,
     output             LHBL_dly,
     output             HS,
+    output             IMS, // Interrupt Middle Screen
     input              flip,
     // PROM programming
     input [7:0]        prog_addr,
@@ -73,6 +74,8 @@ wire [6:0]  char_pxl;  // called mcol in schematics
 wire [7:0]  obj_pxl;  // called ocol in schematics
 wire [7:0]  scr_pxl;  // called bcol in schematics
 wire [7:0]  HPOS, VPOS;
+
+assign IMS = VPOS[3];
 
 jtdd_timing u_timing(
     .clk      (  clk      ),
@@ -96,7 +99,7 @@ jtdd_char u_char(
     .char_cs     ( char_cs          ),
     .cpu_wrn     ( cpu_wrn          ),
     .cpu_dout    ( cpu_dout         ),
-    .cen_E       ( cen_E            ),
+    .cen_Q       ( cen_Q            ),
     .char_dout   ( char_dout        ),
     .HPOS        ( HPOS             ),
     .VPOS        ( VPOS             ),
@@ -115,7 +118,7 @@ jtdd_scroll u_scroll(
     .scr_cs      ( scr_cs           ),
     .cpu_wrn     ( cpu_wrn          ),
     .cpu_dout    ( cpu_dout         ),
-    .cen_E       ( cen_E            ),
+    .cen_Q       ( cen_Q            ),
     .scr_dout    ( scr_dout         ),
     .HPOS        ( HPOS             ),
     .VPOS        ( VPOS             ),
@@ -133,6 +136,7 @@ jtdd_obj u_obj(
     .rst         ( rst              ),
     .pxl_cen     ( pxl_cen          ),
     .cpu_AB      ( cpu_AB[8:0]      ),
+    .cpu_cen     ( cen_Q            ),
     .obj_cs      ( obj_cs           ),
     .cpu_wrn     ( cpu_wrn          ),
     .cpu_dout    ( cpu_dout         ),

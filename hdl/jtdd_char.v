@@ -29,7 +29,7 @@ module jtdd_char(
     input              char_cs,
     input              cpu_wrn,
     input      [ 7:0]  cpu_dout,
-    input              cen_E,
+    input              cen_Q,
     output reg [ 7:0]  char_dout,
     input      [ 7:0]  HPOS,
     input      [ 7:0]  VPOS,
@@ -79,7 +79,7 @@ end
 
 jtframe_ram #(.aw(12),.simfile("char_hi.bin")) u_ram_high(
     .clk    ( clk         ),
-    .cen    ( cen_E       ),
+    .cen    ( cen_Q       ),
     .data   ( cpu_dout    ),
     .addr   ( ram_addr    ),
     .we     ( hi_we       ),
@@ -88,7 +88,7 @@ jtframe_ram #(.aw(12),.simfile("char_hi.bin")) u_ram_high(
 
 jtframe_ram #(.aw(12),.simfile("char_lo.bin")) u_ram_low(
     .clk    ( clk         ),
-    .cen    ( cen_E       ),
+    .cen    ( cen_Q       ),
     .data   ( cpu_dout    ),
     .addr   ( ram_addr    ),
     .we     ( lo_we       ),

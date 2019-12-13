@@ -27,82 +27,90 @@
 module jtdd_main(
     input              clk,
     input              rst,
-    input              cen_E,
-    input              cen_Q,
+    (* direct_enable *) input cen_E,
+    (* direct_enable *) input cen_Q,
+    output             cpu_cen,
     input              VBL,
-    output  reg        blue_cs,
-    output  reg        redgreen_cs,
+    input              IMS, // =VPOS[3]
+    // MCU
+    input       [7:0]  mcu_ram,
+    input              mcu_irqmain,
+    input              mcu_ban,
+    output             mcu_nmi_set,
+    output  reg        mcu_haltn,
+    output  reg        com_cs,
+    // Palette
+    output  reg        pal_cs,
     output  reg        flip,
+    input       [7:0]  pal_dout,
     // Sound
-    output  reg        sres_b, // Z80 reset
+    output  reg        snd_rstb,
+    output  reg        snd_irq,
     output  reg [7:0]  snd_latch,
     // Characters
     input       [7:0]  char_dout,
     output      [7:0]  cpu_dout,
     output  reg        char_cs,
-    input              char_busy,
+    // Object
+    input       [7:0]  obj_dout,
+    output  reg        obj_cs,
     // scroll
     input       [7:0]  scr_dout,
     output  reg        scr_cs,
-    input              scr_busy,
-    output  reg [8:0]  scr_hpos,
-    output  reg [8:0]  scr_vpos,
-    input              scr_holdn,
+    output  reg [8:0]  scrhpos,
+    output  reg [8:0]  scrvpos,
     // cabinet I/O
     input       [1:0]  start_button,
     input       [1:0]  coin_input,
-    input       [5:0]  joystick1,
-    input       [5:0]  joystick2,
+    input       [6:0]  joystick1,
+    input       [6:0]  joystick2,
     // BUS sharing
-    output             bus_ack,
-    input              bus_req,
-    input              blcnten,
-    input   [ 8:0]     obj_AB,
     output  [12:0]     cpu_AB,
     output             RnW,
-    output reg         OKOUT,
-    output  [7:0]      ram_dout,
     // ROM access
     output  reg        rom_cs,
     output  reg [17:0] rom_addr,
     input       [ 7:0] rom_data,
     input              rom_ok,
     // DIP switches
+    input              dip_test,
     input              dip_pause,
     input  [7:0]       dipsw_a,
     input  [7:0]       dipsw_b
 );
 
 wire [15:0] A;
-wire MRDY, E, Q;
 wire nRESET;
-reg sound_cs, scrpos_cs, io_cs, flip_cs, ram_cs, bank_cs;
-
-assign cpu_cen = cen3;
+reg scrpos_cs, io_cs, ram_cs, misc_cs, banked_cs;
 
 reg [7:0] AH;
-
-wire M1Hn = ~M1H;
 
 // These refer to memory locations to which a write operation
 // has some hardware effect. In reality A[3] must be high too
 // so the labels are incorrect. But I keep the ones used in the
 // schematics
 reg w3801, w3802, w3803, w3804, w3805, w3806, w3807;
+wire scrhpos_cs  = w3801; // sch. sheet 8/10
+wire scrvpos_cs  = w3802;
+wire nmi_clr     = w3803;
+wire firq_clr    = w3804;
+wire irq_clr     = w3805;
+wire sndlatch_cs = w3806;
+assign mcu_nmi_set = w3807;
+
+assign char_cs   = ram_cs; // shared
 
 always @(*) begin
-    sound_cs    = 1'b0;
-    OKOUT       = 1'b0;
     scrpos_cs   = 1'b0;
     scr_cs      = 1'b0;
     io_cs       = 1'b0;
-    blue_cs     = 1'b0;
-    redgreen_cs = 1'b0;
-    flip_cs     = 1'b0;
+    pal_cs      = 1'b0;
     ram_cs      = 1'b0;
-    char_cs     = 1'b0;
-    banked_cs   = 1'b0;
     rom_cs      = 1'b0;
+    obj_cs      = 1'b0;
+    misc_cs     = 1'b0;
+    com_cs      = 1'b0;
+    banked_cs   = 1'b0;
     w3801       = 1'b0;
     w3802       = 1'b0;
     w3803       = 1'b0;
@@ -110,26 +118,25 @@ always @(*) begin
     w3805       = 1'b0;
     w3806       = 1'b0;
     w3807       = 1'b0;
-    if( A[15:14]==2'b00 && M1Hn ) begin
+    if( A[15:14]==2'b00 ) begin
         case(A[13:11])
             3'd0, 3'd1, 3'd3: ram_cs = 1'b1;
             3'd2: pal_cs = 1'b1;
-            3'd4: com_cs = mcu_ba;
+            3'd4: com_cs = 1'b1;
             3'd5: obj_cs = 1'b1;
             3'd6: scr_cs = 1'b1;
             3'd7: begin
-                io_cs  = 1'b1;
-                if( RnW ) begin
-                end else if(A[3]) begin // write
+                io_cs  = RnW;
+                if(A[3] && !RnW) begin 
                     case( A[2:0] )
                         3'd0: misc_cs = 1'b1;
-                        3'd1: w3801   = 1'b1;
-                        3'd2: w3802   = 1'b1;
-                        3'd3: w3803   = 1'b1;
-                        3'd4: w3804   = 1'b1;
-                        3'd5: w3805   = 1'b1;
-                        3'd6: w3806   = 1'b1;
-                        3'd7: w3807   = 1'b1;
+                        3'd1: w3801   = 1'b1; // H scroll
+                        3'd2: w3802   = 1'b1; // V scroll
+                        3'd3: w3803   = 1'b1; // clear NMI interrupt
+                        3'd4: w3804   = 1'b1; // FIRQ clear
+                        3'd5: w3805   = 1'b1; // IRQ clear
+                        3'd6: w3806   = 1'b1; // sound latch CS
+                        3'd7: w3807   = 1'b1; // MCU NMI set
                     endcase
                 end
             end
@@ -140,130 +147,98 @@ always @(*) begin
     end
 end
 
-// SCROLL H/V POSITION
-always @(posedge clk or negedge nRESET)
-    if( !nRESET ) begin
-        scr_hpos <= 8'd0;
-        scr_vpos <= 8'd0;
-    end else if(cen6) begin
-        if( scrpos_cs && A[3] && scr_holdn)
-        case(A[1:0])
-            2'd0: scr_hpos[7:0] <= cpu_dout;
-            2'd1: scr_hpos[8]   <= cpu_dout[0];
-            2'd2: scr_vpos[7:0] <= cpu_dout;
-            2'd3: scr_vpos[8]   <= cpu_dout[0];
-        endcase
-    end
-
-// special registers
+// special registers. Schematic sheet 3/9
 reg [2:0] bank;
-always @(posedge clk or negedge nRESET)
-    if( !nRESET ) begin
-        bank   <= 3'd0;
-    end
-    else if(cen6) begin
-        if( bank_cs && !RnW ) begin
-            bank <= cpu_dout[2:0];
-        end
-    end
-
-// CPU reset
-jt12_rst u_rst(
-    .rst    ( rst       ),
-    .clk    ( clk       ),
-    .rst_n  ( nRESET    )
-);
-
-localparam coinw = 4;
-reg [coinw-1:0] coin_cnt1, coin_cnt2;
-
-always @(posedge clk)
+always @(posedge clk or posedge rst) begin
     if( rst ) begin
-        coin_cnt1 <= {coinw{1'b0}};
-        coin_cnt2 <= {coinw{1'b0}};
-        flip <= 1'b0;
-        sres_b <= 1'b1;
+        bank        <= 3'd0;
+        flip        <= 1'b0;
+        mcu_haltn   <= 1'b1;
+        scrhpos     <= 9'b0;
+        scrvpos     <= 9'b0;
+        snd_rstb    <= 1'b0;
+    end else if(cen_Q) begin
+        snd_irq <= 1'b0;
+        if( sndlatch_cs ) begin
+            snd_latch <= cpu_dout;
+            snd_irq   <= 1'b1;
         end
-    else if(cen6) begin
-        if( flip_cs )
-            case(A[2:0])
-                3'd0: flip <= cpu_dout[0];
-                3'd1: sres_b <= cpu_dout[0];
-                3'd2: coin_cnt1 <= coin_cnt1+{ {(coinw-1){1'b0}}, cpu_dout[0] };
-                3'd3: coin_cnt2 <= coin_cnt2+{ {(coinw-1){1'b0}}, cpu_dout[0] };
-                default:;
-            endcase
+        if( scrvpos_cs ) scrvpos[7:0] <= cpu_dout;
+        if( scrhpos_cs ) scrhpos[7:0] <= cpu_dout;
+        if( misc_cs ) begin
+            scrhpos[8] <= cpu_dout[0];
+            scrvpos[8] <= cpu_dout[1];
+            flip       <= cpu_dout[2];
+            snd_rstb   <= cpu_dout[3];
+            mcu_haltn  <= cpu_dout[4];
+            bank       <= cpu_dout[7:5];
+        end
     end
+end
 
-always @(posedge clk)
-    if( rst )
-        snd_latch <= 8'd0;
-    else if(cen6) begin
-        if( sound_cs ) snd_latch <= cpu_dout;
-    end
+assign nRESET = ~rst;
 
 reg [7:0] cabinet_input;
 
-always @(*)
+always @(posedge clk) begin
     case( cpu_AB[3:0])
-        4'd0: cabinet_input = { coin_input, // COINS
-                     4'hf, // undocumented. The game start screen has background when set to 0!
-                     start_button }; // START
-        4'd1: cabinet_input = { 2'b11, joystick1 };
-        4'd2: cabinet_input = { 2'b11, joystick2 };
-        4'd3: cabinet_input = dipsw_a;
-        4'd4: cabinet_input = dipsw_b;
-        default: cabinet_input = 8'hff;
+        4'd0:    cabinet_input <= { start_button, joystick1[5:0] };
+        4'd1:    cabinet_input <= { coin_input,   joystick2[5:0] };
+        4'd2:    cabinet_input <= { 3'b111, mcu_ban, VBL, 
+            joystick2[6], joystick1[6], dip_test };
+        4'd3:    cabinet_input <= dipsw_a;
+        4'd4:    cabinet_input <= dipsw_b;
+        default: cabinet_input <= 8'hff;
     endcase
+end
 
-
-// RAM, 8kB
 assign cpu_AB = A[12:0];
 
 reg [7:0] cpu_din;
 
-always @(*)
-    case( {ram_cs, char_cs, scr_cs, rom_cs, io_cs} )
-        5'b10_000: cpu_din =  ram_dout;
-        5'b01_000: cpu_din = char_dout;
-        5'b00_100: cpu_din =  scr_dout;
-        5'b00_010: cpu_din =  rom_data;
-        5'b00_001: cpu_din =  cabinet_input;
-        default:   cpu_din =  rom_data;
-    endcase
-
 always @(*) begin
-    rom_addr[13:0] =  cpu_AB[13:0];
-    rom_addr[17:14]= banked_cs ? {1'b0,bank} : {3'b100, cpu_AB[14]};
+    case( 1'b1 )
+        ram_cs    : cpu_din = char_dout;
+        scr_cs    : cpu_din = scr_dout;
+        rom_cs    : cpu_din = rom_data;
+        banked_cs : cpu_din = rom_data;
+        io_cs     : cpu_din = cabinet_input;
+        pal_cs    : cpu_din = pal_dout;
+        obj_cs    : cpu_din = obj_dout;
+        com_cs    : cpu_din = mcu_ram;
+        default   : cpu_din = 8'hff;
+    endcase
 end
 
-// Bus access
-reg nIRQ, last_LVBL;
-wire BS,BA;
-
-assign bus_ack = BA && BS;
-
-always @(posedge clk) if(cen6) begin
-    last_LVBL <= LVBL;
-    if( {BS,BA}==2'b10 )
-        nIRQ <= 1'b1;
-    else
-        if(last_LVBL && !LVBL ) nIRQ<=1'b0 | ~dip_pause; // when LVBL goes low
+// banked ROM address
+always @(*) begin
+    rom_addr[13:0] =  A[13:0];
+    rom_addr[17:14]= banked_cs ? {1'b0,bank} : {3'b100, A[14]};
 end
 
-
+// Interrupts
 wire nIRQ, nFIRQ, nNMI;
+wire VBL_pause = VBL & dip_pause;
 
 jtframe_ff #(.W(3)) u_irq(
-    .clk    (   clk                   ),
-    .clk    (   rst                   ),
-    .cen    (   1'b1                  ),
-    .edge   ( { VBL, IMS, irq2 }      ),
-    .clr    ( { w3803, w3804, w3805 } ),
-    .set    ( 3'b0                    ),
-    .q      (                         ),
-    .qn     ( { nNMI, nFIRQ, nIRQ }   )
+    .clk     (   clk                            ),
+    .rst     (   rst                            ),
+    .cen     (   1'b1                           ),
+    .sigedge ( { VBL_pause, IMS, mcu_irqmain }  ),
+    .din     ( ~3'd0                            ),
+    .clr     ( { w3803, w3804, w3805 }          ),
+    .set     ( 3'b0                             ),
+    .q       (                                  ),
+    .qn      ( { nNMI, nFIRQ, nIRQ }            )
 );
+
+reg E,Q;
+assign cpu_cen = Q;
+
+always @(negedge clk) begin
+    E <= cen_E & ( ~rom_cs | rom_ok );
+    Q <= cen_Q & ( ~rom_cs | rom_ok );
+end
 
 // cycle accurate core
 mc6809i u_cpu(
@@ -272,8 +247,8 @@ mc6809i u_cpu(
     .ADDR    ( A       ),
     .RnW     ( RnW     ),
     .clk     ( clk     ),
-    .E       ( cen_E   ),
-    .Q       ( cen_Q   ),
+    .cen_E   ( E       ),
+    .cen_Q   ( Q       ),
     .BS      (         ),
     .BA      (         ),
     .nIRQ    ( nIRQ    ),
@@ -282,6 +257,7 @@ mc6809i u_cpu(
     .AVMA    (         ),
     .BUSY    (         ),
     .LIC     (         ),
+    .nDMABREQ( 1'b1    ),
     .nHALT   ( 1'b1    ),   
     .nRESET  ( nRESET  ),
     .RegData (         )

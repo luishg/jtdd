@@ -1,4 +1,6 @@
 ../../hdl/jtdd_game.v
+../../hdl/jtdd_main.v
+../../hdl/jtdd_mcu.v
 ../../hdl/jtdd_video.v
 ../../hdl/jtdd_timing.v
 ../../hdl/jtdd_char.v
@@ -14,5 +16,8 @@
 ../../modules/jtframe/hdl/sdram/jtframe_rom.v
 ../../modules/jtframe/hdl/sdram/jtframe_romflex.v
 ../../modules/jtframe/hdl/sdram/jtframe_romrq.v
+# CPU
+../../modules/mc6809/mc6809i.v
 # Other
+../../modules/jtframe/hdl/jtframe_ff.v
 ../../modules/jtframe/hdl/jtframe_sh.v

@@ -72,34 +72,49 @@ module jtdd_game(
 
 );
 
-wire       [12:0]  cpu_AB=13'd0;
-wire               pal_cs=1'b0;
-wire               char_cs=1'b0, scr_cs=1'b0, obj_cs=1'b0;
-wire               cpu_wrn=1'b1;
-wire       [ 7:0]  cpu_dout=8'd0;
-wire               cen_E;
-wire       [ 7:0]  char_dout, scr_dout, obj_dout;
+wire       [12:0]  cpu_AB;
+wire               pal_cs;
+wire               char_cs, scr_cs, obj_cs;
+wire               cpu_wrn;
+wire       [ 7:0]  cpu_dout;
+wire               cen_E, cen_Q;
+wire       [ 7:0]  char_dout, scr_dout, obj_dout, pal_dout;
 // video signals
-wire               VBL, HBL;
-wire               flip = 1'b0;
+wire               VBL, HBL, IMS;
+wire               flip;
 // ROM access
 wire       [14:0]  char_addr;
 wire       [ 7:0]  char_data;
 wire       [16:0]  scr_addr;
 wire       [17:0]  obj_addr;
 wire       [15:0]  scr_data, obj_data;
-wire               char_ok, scr_ok, obj_ok;
+wire               char_ok, scr_ok, obj_ok, main_ok;
+wire       [17:0]  main_addr;
+wire               main_cs;
+wire       [ 7:0]  main_data;
+// Sound
+wire               snd_rstb, snd_irq;
+wire       [ 7:0]  snd_latch;
+// DIP
+wire       [ 7:0]  dipsw_a = 8'hff;
+wire       [ 7:0]  dipsw_b = 8'hff;
+// MCU
+wire               mcu_irqmain, mcu_haltn, com_cs, mcu_nmi_set, mcu_ban;
+wire       [ 7:0]  mcu_ram;
 // PROM programming
 wire               prom_prio_we;
+wire               prom_mcu_we = 1'b0;
 
-wire       [ 8:0]  scrhpos=9'h050, scrvpos=9'h0fd;
+wire       [ 8:0]  scrhpos, scrvpos;
 
 assign prog_addr = 22'd0;
 assign dwnld_busy = 1'b0;
 
 wire cen12, cen8, cen6, cen3, cen3q, cen1p5, cen12b, cen6b, cen3b, cen3qb;
+wire cpu_cen;
 
 assign cen_E    = cen3b;
+assign cen_Q    = cen3qb;
 assign pxl_cen  = cen6;
 assign pxl2_cen = cen12;
 
@@ -117,6 +132,83 @@ jtframe_cen48 u_cen(
     .cen6b   (  cen6b    )
 );
 
+jtdd_main u_main(
+    .clk            ( clk           ),
+    .rst            ( rst           ),
+    .cen_E          ( cen_E         ),
+    .cen_Q          ( cen_Q         ),
+    .cpu_cen        ( cpu_cen       ),
+    .VBL            ( VBL           ),
+    .IMS            ( IMS           ), // =VPOS[3]
+    // MCU
+    .mcu_irqmain    ( mcu_irqmain   ),
+    .mcu_haltn      ( mcu_haltn     ),
+    .mcu_ban        ( mcu_ban       ),
+    .com_cs         ( com_cs        ),
+    .mcu_nmi_set    ( mcu_nmi_set   ),
+    .mcu_ram        ( mcu_ram       ),
+    // Palette
+    .pal_cs         ( pal_cs        ),
+    .pal_dout       ( pal_dout      ),
+    .flip           ( flip          ),
+    // Sound
+    .snd_rstb       ( snd_rstb      ),
+    .snd_irq        ( snd_irq       ),
+    .snd_latch      ( snd_latch     ),
+    // Characters
+    .char_dout      ( char_dout     ),
+    .cpu_dout       ( cpu_dout      ),
+    .char_cs        ( char_cs       ),
+    // Objects
+    .obj_dout       ( obj_dout      ),
+    .obj_cs         ( obj_cs        ),
+    // scroll
+    .scr_dout       ( scr_dout      ),
+    .scr_cs         ( scr_cs        ),
+    .scrhpos        ( scrhpos       ),
+    .scrvpos        ( scrvpos       ),
+    // cabinet I/O
+    .start_button   ( start_button  ),
+    .coin_input     ( coin_input    ),
+    .joystick1      ( joystick1     ),
+    .joystick2      ( joystick2     ),
+    // BUS sharing
+    .cpu_AB         ( cpu_AB        ),
+    .RnW            ( cpu_wrn       ),
+    // ROM access
+    .rom_cs         ( main_cs       ),
+    .rom_addr       ( main_addr     ),
+    .rom_data       ( main_data     ),
+    .rom_ok         ( main_ok       ),
+    // DIP switches
+    .dip_pause      ( dip_pause     ),
+    .dip_test       ( dip_test      ),
+    .dipsw_a        ( dipsw_a       ),
+    .dipsw_b        ( dipsw_b       )
+);
+
+jtdd_mcu u_mcu(
+    .clk          (  clk             ),
+    .rst          (  rst             ),
+    .cen_Q        (  cpu_cen         ),
+    // CPU bus
+    .cpu_AB       (  cpu_AB[8:0]     ),
+    .cpu_wrn      (  cpu_wrn         ),
+    .cpu_dout     (  cpu_dout        ),
+    .mcu_ram      (  mcu_ram         ),
+    // CPU Interface
+    .com_cs       (  com_cs          ),
+    .mcu_nmi_set  (  mcu_nmi_set     ),
+    .mcu_haltn    (  mcu_haltn       ),
+    .mcu_irqmain  (  mcu_irqmain     ),
+    .mcu_ban      (  mcu_ban         ),
+    // PROM programming
+    .prog_addr    (  prog_addr[13:0] ),
+    .prom_din     (  prog_data       ),
+    .prom_we      (  prom_mcu_we     )
+
+);
+
 jtdd_video u_video(
     .clk          (  clk             ),
     .rst          (  rst             ),
@@ -129,10 +221,11 @@ jtdd_video u_video(
     .obj_cs       (  obj_cs          ),
     .cpu_wrn      (  cpu_wrn         ),
     .cpu_dout     (  cpu_dout        ),
-    .cen_E        (  cen_E           ),
+    .cen_Q        (  cpu_cen         ),
     .char_dout    (  char_dout       ),
     .scr_dout     (  scr_dout        ),
     .obj_dout     (  obj_dout        ),
+    .pal_dout     (  pal_dout        ),
     // Scroll position
     .scrhpos      ( scrhpos          ),
     .scrvpos      ( scrvpos          ),
@@ -143,6 +236,7 @@ jtdd_video u_video(
     .HBL          (  HBL             ),
     .LHBL_dly     (  LHBL_dly        ),
     .HS           (  HS              ),
+    .IMS          (  IMS             ),
     .flip         (  flip            ),
     // ROM access
     .char_addr    (  char_addr       ),
@@ -180,7 +274,7 @@ localparam OBJ_ADDR  = 22'h8_0000;
 jtframe_rom #(
     .char_aw    ( 15              ),
     .char_dw    ( 8               ),
-    .main_aw    ( 17              ),
+    .main_aw    ( 18              ),
     .obj_aw     ( 18              ),
     .scr1_aw    ( 17              ),
     .scr2_aw    ( 15              ),
@@ -194,8 +288,9 @@ jtframe_rom #(
     .rst         ( rst           ),
     .clk         ( clk           ),
     .LVBL        ( ~VBL          ),
+    .pause       ( ~dip_pause    ),
 
-    .main_cs     ( 1'b0          ),
+    .main_cs     ( main_cs       ),
     .snd_cs      ( 1'b0          ),
     .main_ok     ( main_ok       ),
     .snd_ok      (               ),
@@ -205,16 +300,16 @@ jtframe_rom #(
     .obj_ok      ( obj_ok        ),
 
     .char_addr   ( char_addr     ),
-    .main_addr   ( 17'd0             ),
-    .snd_addr    ( 15'd0             ),
+    .main_addr   ( main_addr     ),
+    .snd_addr    ( 15'd0         ),
     .obj_addr    ( obj_addr      ),
     .scr1_addr   ( scr_addr      ),
-    .scr2_addr   ( 15'd0             ),
+    .scr2_addr   ( 15'd0         ),
     .map1_addr   ( 14'd0         ),
     .map2_addr   ( 14'd0         ),
 
     .char_dout   ( char_data     ),
-    .main_dout   (               ),
+    .main_dout   ( main_data     ),
     .snd_dout    (               ),
     .obj_dout    ( obj_data      ),
     .map1_dout   (               ),

@@ -37,6 +37,7 @@ export BIN2PNG_OPTIONS="--scale"
 export CONVERT_OPTIONS="-resize 300%x300%"
 GAME_ROM_LEN=$(stat -c%s $GAME_ROM_PATH)
 export YM2151=1
+export HD63701=1
 
 if [ ! -e $GAME_ROM_PATH ]; then
     echo Missing file $GAME_ROM_PATH
@@ -48,7 +49,9 @@ echo "Game ROM length: " $GAME_ROM_LEN
 ../../modules/jtframe/bin/sim.sh $MIST -d GAME_ROM_LEN=$GAME_ROM_LEN \
     -sysname dd -modules ../../modules -d SCANDOUBLER_DISABLE=1 \
     -videow 256 -videoh 240 \
-    -d STEREO_GAME -d JT51_NODEBUG $*
+    -d STEREO_GAME -d JT51_NODEBUG \
+    -d JT63701_SIMFILE=',.simfile("../../rom/21jm-0.ic55")' \
+    $*
 
 if [ -e jt51.log ]; then
     ../../modules/jt51/bin/log2txt < jt51.log >/tmp/x
