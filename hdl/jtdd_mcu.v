@@ -27,7 +27,7 @@ module jtdd_mcu(
     input      [ 8:0]  cpu_AB,
     input              cpu_wrn,
     input      [ 7:0]  cpu_dout,
-    output     [ 7:0]  mcu_ram,
+    output     [ 7:0]  shared_dout,
     // CPU Interface
     input              com_cs,
     output             mcu_ban,
@@ -41,34 +41,32 @@ module jtdd_mcu(
 
 );
 
-assign mcu_irqmain = 1'b0;
-
-reg [8:0] ram_addr;
-reg       ram_we;
-reg [7:0] ram_data;
+reg [8:0] shared_addr;
+reg       shared_we;
+reg [7:0] shared_data;
 
 wire        mcu_wrn;
 wire [15:0] mcu_AB;
 wire [ 7:0] mcu_dout;
 
-wire        ram_cs = mcu_AB[15:14]==2'b10;
-assign     mcu_ban = ~ram_cs;
+wire        shared_cs = mcu_AB[15:14]==2'b10;
+assign     mcu_ban = ~shared_cs;
 
 always @(*) begin
-    ram_addr = ram_cs ? mcu_AB[8:0] : cpu_AB;
-    ram_data = ram_cs ? mcu_dout : cpu_dout;
-    if( ram_cs ) begin
-        ram_addr =  mcu_AB[8:0];
-        ram_data =  mcu_dout;
-        ram_we   = ~mcu_wrn;
+    shared_addr = shared_cs ? mcu_AB[8:0] : cpu_AB;
+    shared_data = shared_cs ? mcu_dout : cpu_dout;
+    if( shared_cs ) begin
+        shared_addr =  mcu_AB[8:0];
+        shared_data =  mcu_dout;
+        shared_we   = ~mcu_wrn;
     end else begin
-        ram_addr = cpu_AB;
-        ram_data = cpu_dout;
-        ram_we   = com_cs & ~cpu_wrn;    
+        shared_addr = cpu_AB;
+        shared_data = cpu_dout;
+        shared_we   = com_cs & ~cpu_wrn;    
     end
 end
 
-wire clk2 = clk & pxl_cen & ~mcu_haltn;
+wire clk2 = clk & pxl_cen & mcu_haltn;
 wire [7:0] P6;
 wire       nmi;
 
@@ -86,6 +84,12 @@ jtframe_ff u_nmi(
     .qn      (                )
 );
 
+wire ram_cs = mcu_AB[15:12] == 4'd0;
+wire mcu_we = ram_cs && !mcu_wrn;
+
+wire [7:0] ram_dout;
+wire [7:0] mcu_din = shared_cs ? shared_dout : ram_dout;
+
 jt63701 u_mcu(
     .RST        ( rst       ),
     .CLKx2      ( clk2      ),
@@ -94,7 +98,7 @@ jt63701 u_mcu(
     .RW         ( mcu_wrn   ),   // CS2
     .AD         ( mcu_AB    ),   //  AS ? {PO4,PO3}
     .DO         ( mcu_dout  ),   // ~AS ? {PO3}
-    .DI         ( mcu_ram   ),   //       {PI3}
+    .DI         ( mcu_din   ),   //       {PI3}
     .PI1        ( 8'hff     ),    // Port1 IN
     .PO1        (           ),    //      OUT
     .PI2        ( 5'h1f     ),    // Port2 IN
@@ -109,13 +113,26 @@ jt63701 u_mcu(
     .phase      (           )
 );
 
-jtframe_ram #(.aw(9)) u_ram_high(
+jtframe_ram #(.aw(9)) u_shared(
     .clk    ( clk         ),
     .cen    ( 1'b1        ),
-    .data   ( ram_data    ),
-    .addr   ( ram_addr    ),
-    .we     ( ram_we      ),
-    .q      ( mcu_ram     )
+    .data   ( shared_data ),
+    .addr   ( shared_addr ),
+    .we     ( shared_we   ),
+    .q      ( shared_dout )
 );
 
+jtframe_ram #(.aw(12)) u_ram(
+    .clk    ( clk            ),
+    .cen    ( 1'b1           ),
+    .data   ( mcu_dout       ),
+    .addr   ( mcu_AB[11:0]   ),
+    .we     ( mcu_we         ),
+    .q      ( ram_dout       )
+);
+
+`ifdef SIMULATION
+always @(posedge mcu_haltn) $display("MCU_HALTN rose");
+always @(negedge mcu_haltn) $display("MCU_HALTN fell");
+`endif
 endmodule

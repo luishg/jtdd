@@ -191,11 +191,12 @@ jtdd_mcu u_mcu(
     .clk          (  clk             ),
     .rst          (  rst             ),
     .cen_Q        (  cpu_cen         ),
+    .pxl_cen      (  pxl_cen         ),
     // CPU bus
     .cpu_AB       (  cpu_AB[8:0]     ),
     .cpu_wrn      (  cpu_wrn         ),
     .cpu_dout     (  cpu_dout        ),
-    .mcu_ram      (  mcu_ram         ),
+    .shared_dout  (  mcu_ram         ),
     // CPU Interface
     .com_cs       (  com_cs          ),
     .mcu_nmi_set  (  mcu_nmi_set     ),
