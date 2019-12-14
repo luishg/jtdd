@@ -56,9 +56,12 @@ wire       obj_blank  = ~|obj_pxl[3:0];
 wire       char_blank = ~|char_pxl[3:0];
 wire [7:0] seladdr = { scr_pxl[7], obj_pxl[7], obj_blank, char_blank, scr_pxl[3:0] };
 
+reg [7:0] pal_din;
+
 always @(posedge clk) begin
     pal_gr_we <= pal_cs && !cpu_AB[9];
     pal_b_we  <= pal_cs &&  cpu_AB[9];
+    pal_din   <= cpu_dout;
     pal_dout  <= cpu_AB[9] ? pal_b : pal_gr;
     if( pal_cs )
         pal_addr <= cpu_AB[8:0];
@@ -87,7 +90,7 @@ end
 jtframe_ram #(.aw(9),.simfile("pal_gr.bin")) u_pal_gr(
     .clk    ( clk         ),
     .cen    ( 1'b1        ),
-    .data   ( cpu_dout    ),
+    .data   ( pal_din     ),
     .addr   ( pal_addr    ),
     .we     ( pal_gr_we   ),
     .q      ( pal_gr      )

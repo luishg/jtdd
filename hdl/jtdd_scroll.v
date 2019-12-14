@@ -54,11 +54,11 @@ always @(*) begin // may consider latching this if glitches appear
 end
 
 always @(*) begin
-    lo_we     = scr_cs && !cpu_wrn && !cpu_AB[0];
-    hi_we     = scr_cs && !cpu_wrn &&  cpu_AB[0];
+    lo_we     = scr_cs && !cpu_wrn &&  cpu_AB[0];
+    hi_we     = scr_cs && !cpu_wrn && !cpu_AB[0];
     scan      = { vscr[8], hscr[8], vscr[7:4], hscr[7:4] };
     ram_addr  = scr_cs ? cpu_AB[10:1] : scan;
-    scr_dout  = cpu_AB[0] ? hi_data : lo_data;
+    scr_dout  = !cpu_AB[0] ? hi_data : lo_data;
 end
 
 reg  [15:0] shift;

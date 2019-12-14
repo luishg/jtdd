@@ -46,11 +46,11 @@ reg  [11:0] ram_addr, scan;
 wire [ 7:0] hi_data, lo_data;
 
 always @(*) begin
-    lo_we     = char_cs && !cpu_wrn && !cpu_AB[0];
-    hi_we     = char_cs && !cpu_wrn &&  cpu_AB[0];
+    lo_we     = char_cs && !cpu_wrn &&  cpu_AB[0];
+    hi_we     = char_cs && !cpu_wrn && !cpu_AB[0];
     scan      = { 2'b11, VPOS[7:3], HPOS[7:3] };
     ram_addr  = char_cs ? cpu_AB[12:1] : scan;
-    char_dout = cpu_AB[0] ? hi_data : lo_data;
+    char_dout = !cpu_AB[0] ? hi_data : lo_data;
 end
 
 reg  [7:0] shift;

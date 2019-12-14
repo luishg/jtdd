@@ -87,8 +87,9 @@ always @(negedge clk) cen_halted <= halted_n;
 wire clk2 = clk & pxl_cen & cen_halted;
 wire [7:0] P6;
 wire       nmi;
+wire       nmi_clr = ~P6[0];
 
-assign mcu_irqmain = ~P6[1];
+assign mcu_irqmain =  P6[1];
 
 jtframe_ff u_nmi(
     .clk     (   clk          ),
@@ -96,7 +97,7 @@ jtframe_ff u_nmi(
     .cen     (   1'b1         ),
     .sigedge (   mcu_nmi_set  ),
     .din     (   1'b1         ),
-    .clr     ( ~P6[0]         ),
+    .clr     (   nmi_clr      ),
     .set     (   1'b0         ),
     .q       (   nmi          ),
     .qn      (                )
