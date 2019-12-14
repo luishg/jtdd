@@ -53,7 +53,7 @@ wire [15:0] mcu_AB;
 wire [ 7:0] mcu_dout;
 
 wire    shared_cs = mcu_AB[15:14]==2'b10;
-assign  mcu_ban   = ~shared_cs;
+wire    ba;
 
 always @(*) begin
     shared_addr = shared_cs ? mcu_AB[8:0] : cpu_AB;
@@ -69,7 +69,22 @@ always @(*) begin
     end
 end
 
-wire clk2 = clk & pxl_cen & mcu_haltn;
+reg     halted_n;
+assign  mcu_ban = halted_n;
+
+always @(posedge clk, posedge rst) begin
+    if( rst ) begin
+        halted_n <= 1'b1;
+    end else begin
+        if( !mcu_haltn && ba ) halted_n <= 1'b0; // only halt when bus is available
+        if( mcu_haltn ) halted_n <= 1'b1;
+    end
+end
+
+reg cen_halted;
+always @(negedge clk) cen_halted <= halted_n;
+
+wire clk2 = clk & pxl_cen & cen_halted;
 wire [7:0] P6;
 wire       nmi;
 
@@ -93,19 +108,21 @@ wire mcu_we = ram_cs && mcu_wr;
 wire [7:0] ram_dout;
 wire [7:0] mcu_din = shared_cs ? shared_dout : ram_dout;
 
+
 jt63701 u_mcu(
     .RST        ( rst       ),
     .CLKx2      ( clk2      ),
-    .NMI        ( nmi       ),    // NMI
-    .IRQ        ( 1'b0      ),    // IRQ1
-    .WR         ( mcu_wr    ),   // CS2
-    .AD         ( mcu_AB    ),   //  AS ? {PO4,PO3}
-    .DO         ( mcu_dout  ),   // ~AS ? {PO3}
-    .DI         ( mcu_din   ),   //       {PI3}
-    .PI1        ( 8'hff     ),    // Port1 IN
-    .PO1        (           ),    //      OUT
-    .PI2        ( 5'h1f     ),    // Port2 IN
-    .PO2        (           ),    //      OUT
+    .BA         ( ba        ),
+    .NMI        ( nmi       ),  // NMI
+    .IRQ        ( 1'b0      ),  // IRQ1
+    .WR         ( mcu_wr    ),  // CS2
+    .AD         ( mcu_AB    ),  //  AS ? {PO4,PO3}
+    .DO         ( mcu_dout  ),  // ~AS ? {PO3}
+    .DI         ( mcu_din   ),  //       {PI3}
+    .PI1        ( 8'hff     ),
+    .PO1        (           ),
+    .PI2        ( 5'h1f     ),
+    .PO2        (           ),
     .PI6        ( 8'hff     ),
     .PO6        ( P6        ),
     // PROM programming
