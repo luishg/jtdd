@@ -23,6 +23,7 @@ module jtdd_colmix(
     input              rst,
     (*direct_enable*) input pxl_cen,
     input      [7:0]   cpu_dout,
+    input              cpu_wrn,
     output reg [7:0]   pal_dout,
     input [9:0]        cpu_AB,
     // blanking
@@ -59,10 +60,10 @@ wire [7:0] seladdr = { scr_pxl[7], obj_pxl[7], obj_blank, char_blank, scr_pxl[3:
 reg [7:0] pal_din;
 
 always @(posedge clk) begin
-    pal_gr_we <= pal_cs && !cpu_AB[9];
-    pal_b_we  <= pal_cs &&  cpu_AB[9];
+    pal_gr_we <= pal_cs && !cpu_AB[9] && !cpu_wrn;
+    pal_b_we  <= pal_cs &&  cpu_AB[9] && !cpu_wrn;
     pal_din   <= cpu_dout;
-    pal_dout  <= cpu_AB[9] ? pal_b : pal_gr;
+    pal_dout  <= cpu_AB[9] ? {4'hf, pal_b } : pal_gr;
     if( pal_cs )
         pal_addr <= cpu_AB[8:0];
     else 

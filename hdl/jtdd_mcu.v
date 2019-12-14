@@ -103,12 +103,8 @@ jtframe_ff u_nmi(
     .qn      (                )
 );
 
-wire ram_cs = mcu_AB[15:12] == 4'd0;
-wire mcu_we = ram_cs && mcu_wr;
-
-wire [7:0] ram_dout;
-wire [7:0] mcu_din = shared_cs ? shared_dout : ram_dout;
-
+//wire [7:0] ram_dout;
+wire [7:0] mcu_din = shared_dout; //shared_cs ? shared_dout : ram_dout;
 
 jt63701 u_mcu(
     .RST        ( rst       ),
@@ -142,6 +138,9 @@ jtframe_ram #(.aw(9)) u_shared(
     .we     ( shared_we   ),
     .q      ( shared_dout )
 );
+/*
+wire ram_cs = mcu_AB[15:12] == 4'd0;
+wire mcu_we = ram_cs && mcu_wr;
 
 jtframe_ram #(.aw(12)) u_ram(
     .clk    ( clk            ),
@@ -151,7 +150,7 @@ jtframe_ram #(.aw(12)) u_ram(
     .we     ( mcu_we         ),
     .q      ( ram_dout       )
 );
-
+*/
 `ifdef SIMULATION
 always @(posedge mcu_haltn)   $display("MCU_HALTN rose");
 always @(negedge mcu_haltn)   $display("MCU_HALTN fell");

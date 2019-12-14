@@ -160,6 +160,7 @@ jtdd_colmix u_colmix(
     .cpu_dout    ( cpu_dout         ),
     .pal_dout    ( pal_dout         ),
     .cpu_AB      ( cpu_AB[9:0]      ),
+    .cpu_wrn     ( cpu_wrn          ),
     .VBL         ( VBL              ),
     .HBL         ( HBL              ),
     .LVBL_dly    ( LVBL_dly         ),
