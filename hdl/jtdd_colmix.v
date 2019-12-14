@@ -22,6 +22,7 @@ module jtdd_colmix(
     input              clk,
     input              rst,
     (*direct_enable*) input pxl_cen,
+    (*direct_enable*) input cen_Q,
     input      [7:0]   cpu_dout,
     input              cpu_wrn,
     output reg [7:0]   pal_dout,
@@ -75,7 +76,7 @@ always @(posedge clk) begin
 
 end
 
-wire BL = VBL | HBL;
+wire BL = ~LVBL_dly | ~LHBL_dly;
 
 jtframe_sh #(.width(2), .stages(5)) u_sh(
     .clk    ( clk                   ),
@@ -90,7 +91,7 @@ end
 
 jtframe_ram #(.aw(9),.simfile("pal_gr.bin")) u_pal_gr(
     .clk    ( clk         ),
-    .cen    ( 1'b1        ),
+    .cen    ( cen_Q     ),
     .data   ( pal_din     ),
     .addr   ( pal_addr    ),
     .we     ( pal_gr_we   ),
@@ -99,7 +100,7 @@ jtframe_ram #(.aw(9),.simfile("pal_gr.bin")) u_pal_gr(
 
 jtframe_ram #(.aw(9),.dw(4),.simfile("pal_b.bin")) u_pal_b(
     .clk    ( clk           ),
-    .cen    ( 1'b1          ),
+    .cen    ( cen_Q       ),
     .data   ( cpu_dout[3:0] ),
     .addr   ( pal_addr      ),
     .we     ( pal_b_we      ),

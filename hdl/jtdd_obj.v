@@ -26,7 +26,7 @@ module jtdd_obj(
     input              clk,
     input              rst,
     (*direct_enable*)  input pxl_cen,
-    input              cpu_cen,
+    input              cen_Q,
     input      [ 8:0]  cpu_AB,
     input              obj_cs,
     input              cpu_wrn,
@@ -156,7 +156,7 @@ end
 
 jtframe_ram #(.aw(9),.simfile("obj.bin")) u_ram(
     .clk    ( clk         ),
-    .cen    ( cpu_cen     ),
+    .cen    ( cen_Q       ),
     .data   ( cpu_dout    ),
     .addr   ( ram_addr    ),
     .we     ( ram_we      ),
