@@ -19,6 +19,10 @@
 // SCR is written starting at 0x4_0000 of SDRAM
 // OBJ from 0x8_0000
 
+// Skip test and legal screens
+// Replace 7eb825 for 7e8063 in main (non banked) CPU ROM.
+// The game will boot directly to the demo
+
 `timescale 1ns/1ps
 
 module jtdd_prom_we(
@@ -134,7 +138,7 @@ always @(posedge clk) begin
             prog_addr <= ioctl_addr;
             prog_we   <= 1'b0;
             prog_mask <= 2'b11;
-            prom_we0  <= 5'h10;
+            prom_we0  <= 2'b10;
             set_strobe <= 1'b1;
             `INFO_MCU
         end
@@ -142,10 +146,9 @@ always @(posedge clk) begin
             prog_addr <= ioctl_addr;
             prog_we   <= 1'b0;
             prog_mask <= 2'b11;
-            prom_we0  <= 5'd0;
+            prom_we0  <= 2'd0;
             case(ioctl_addr[10:8])
                 3'h0:      prom_we0[0] <= 1'b1;
-                3'h1,3'h2: prom_we0[1] <= 1'b1;
                 default:;
             endcase
             set_strobe <= 1'b1;

@@ -52,7 +52,9 @@ module mist_dump(
             $shm_probe(frame_cnt);
             $shm_probe(UUT.u_game,"A");
             $shm_probe(UUT.u_game.u_main,"A");
-            $shm_probe(UUT.u_game.u_mcu,"AS");
+            $shm_probe(UUT.u_game.u_video,"A");
+            $shm_probe(UUT.u_game.u_video.u_obj,"A");
+            $shm_probe(UUT.u_game.u_mcu,"A");
         `endif
     end
 `endif

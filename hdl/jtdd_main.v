@@ -83,8 +83,6 @@ wire [15:0] A;
 wire nRESET;
 reg scrpos_cs, io_cs, ram_cs, misc_cs, banked_cs;
 
-reg [7:0] AH;
-
 // These refer to memory locations to which a write operation
 // has some hardware effect. In reality A[3] must be high too
 // so the labels are incorrect. But I keep the ones used in the

@@ -96,19 +96,18 @@ wire       [ 7:0]  main_data;
 wire               snd_rstb, snd_irq;
 wire       [ 7:0]  snd_latch;
 // DIP
-wire       [ 7:0]  dipsw_a = 8'hff;
-wire       [ 7:0]  dipsw_b = 8'hff;
+wire       [ 7:0]  dipsw_a, dipsw_b;
 // MCU
 wire               mcu_irqmain, mcu_haltn, com_cs, mcu_nmi_set, mcu_ban;
 wire       [ 7:0]  mcu_ram;
 // PROM programming
-wire               prom_prio_we;
-wire               prom_mcu_we = 1'b0;
+wire       [ 1:0]  prom_we;
+wire               prom_prio_we = prom_we[0];
+wire               prom_mcu_we  = prom_we[1];
 
 wire       [ 8:0]  scrhpos, scrvpos;
 
-assign prog_addr = 22'd0;
-assign dwnld_busy = 1'b0;
+assign dwnld_busy = downloading;
 
 wire cen12, cen8, cen6, cen3, cen3q, cen1p5, cen12b, cen6b, cen3b, cen3qb;
 wire cpu_cen;
@@ -130,6 +129,29 @@ jtframe_cen48 u_cen(
     .cen1p5  (  cen1p5   ),
     .cen12b  (  cen12b   ),
     .cen6b   (  cen6b    )
+);
+
+jtdd_prom_we u_prom(
+    .clk          ( clk             ),
+    .downloading  ( downloading     ),
+    .ioctl_addr   ( ioctl_addr      ),
+    .ioctl_data   ( ioctl_data      ),
+    .ioctl_wr     ( ioctl_wr        ),
+    .prog_addr    ( prog_addr       ),
+    .prog_data    ( prog_data       ),
+    .prog_mask    ( prog_mask       ),
+    .prog_we      ( prog_we         ),
+    .prom_we      ( prom_we         )
+);
+
+jtdd_dip u_dip(
+    .clk        (  clk          ),
+    .status     (  status       ),
+    .dip_pause  (  dip_pause    ),
+    .dip_test   (  dip_test     ),
+    .dip_flip   (  dip_flip     ),
+    .dipsw_a    (  dipsw_a      ),
+    .dipsw_b    (  dipsw_b      )
 );
 
 jtdd_main u_main(
@@ -207,7 +229,6 @@ jtdd_mcu u_mcu(
     .prog_addr    (  prog_addr[13:0] ),
     .prom_din     (  prog_data       ),
     .prom_we      (  prom_mcu_we     )
-
 );
 
 jtdd_video u_video(

@@ -41,7 +41,7 @@ module jtdd_obj(
     output reg [17:0]  rom_addr,
     input      [15:0]  rom_data,
     input              rom_ok,
-    output     [ 7:0]  obj_pxl
+    output reg [ 7:0]  obj_pxl
 );
 
 // RAM area shared with CPU
@@ -229,7 +229,6 @@ end
 // Line buffers
 reg  [7:0] rd_addr, ln_data;
 reg  [9:0] ln_addr;
-reg  [7:0] pre_dly;
 wire [7:0] ln_dout;
 reg        ln_we;
 reg        copying_dly;
@@ -254,7 +253,7 @@ always @(posedge clk, posedge rst) begin
         end else begin
             ln_we        <= 1'b0;
 
-            if( wait_buf[3] ) pre_dly <= ln_dout;
+            if( wait_buf[3] ) obj_pxl <= ln_dout;
             if( wait_buf[1] ) begin
                 ln_addr <= { line, 1'b0, ~rd_addr };
                 rd_addr <= rd_addr + 8'd1;
@@ -277,14 +276,5 @@ jtframe_ram #(.aw(10)) u_line(
     .we     ( ln_we       ),
     .q      ( ln_dout     )
 );
-
-assign obj_pxl = pre_dly;
-
-// jtframe_sh #(.stages(7),.width(8)) u_dly(
-//     .clk    ( clk       ),
-//     .clk_en ( pxl_cen   ),
-//     .din    ( pre_dly   ),
-//     .drop   ( obj_pxl   )
-// );
 
 endmodule

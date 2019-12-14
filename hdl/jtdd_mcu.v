@@ -58,7 +58,7 @@ wire    ba;
 always @(*) begin
     shared_addr = shared_cs ? mcu_AB[8:0] : cpu_AB;
     shared_data = shared_cs ? mcu_dout : cpu_dout;
-    if( shared_cs ) begin
+    if( !ba ) begin
         shared_addr = mcu_AB[8:0];
         shared_data = mcu_dout;
         shared_we   = mcu_wr;
@@ -132,25 +132,13 @@ jt63701 u_mcu(
 
 jtframe_ram #(.aw(9)) u_shared(
     .clk    ( clk         ),
-    .cen    ( 1'b1        ),
+    .cen    ( pxl_cen     ),
     .data   ( shared_data ),
     .addr   ( shared_addr ),
     .we     ( shared_we   ),
     .q      ( shared_dout )
 );
-/*
-wire ram_cs = mcu_AB[15:12] == 4'd0;
-wire mcu_we = ram_cs && mcu_wr;
 
-jtframe_ram #(.aw(12)) u_ram(
-    .clk    ( clk            ),
-    .cen    ( 1'b1           ),
-    .data   ( mcu_dout       ),
-    .addr   ( mcu_AB[11:0]   ),
-    .we     ( mcu_we         ),
-    .q      ( ram_dout       )
-);
-*/
 `ifdef SIMULATION
 always @(posedge mcu_haltn)   $display("MCU_HALTN rose");
 always @(negedge mcu_haltn)   $display("MCU_HALTN fell");
