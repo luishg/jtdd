@@ -18,6 +18,9 @@
 
 `timescale 1ns/1ps
 
+// Port 4 configured as output --> use as address bus
+// Port 6 configured as output
+
 module jtdd_mcu(
     input              clk,
     input              rst,
@@ -45,20 +48,20 @@ reg [8:0] shared_addr;
 reg       shared_we;
 reg [7:0] shared_data;
 
-wire        mcu_wrn;
+wire        mcu_wr;
 wire [15:0] mcu_AB;
 wire [ 7:0] mcu_dout;
 
-wire        shared_cs = mcu_AB[15:14]==2'b10;
-assign     mcu_ban = ~shared_cs;
+wire    shared_cs = mcu_AB[15:14]==2'b10;
+assign  mcu_ban   = ~shared_cs;
 
 always @(*) begin
     shared_addr = shared_cs ? mcu_AB[8:0] : cpu_AB;
     shared_data = shared_cs ? mcu_dout : cpu_dout;
     if( shared_cs ) begin
-        shared_addr =  mcu_AB[8:0];
-        shared_data =  mcu_dout;
-        shared_we   = ~mcu_wrn;
+        shared_addr = mcu_AB[8:0];
+        shared_data = mcu_dout;
+        shared_we   = mcu_wr;
     end else begin
         shared_addr = cpu_AB;
         shared_data = cpu_dout;
@@ -85,7 +88,7 @@ jtframe_ff u_nmi(
 );
 
 wire ram_cs = mcu_AB[15:12] == 4'd0;
-wire mcu_we = ram_cs && !mcu_wrn;
+wire mcu_we = ram_cs && mcu_wr;
 
 wire [7:0] ram_dout;
 wire [7:0] mcu_din = shared_cs ? shared_dout : ram_dout;
@@ -95,7 +98,7 @@ jt63701 u_mcu(
     .CLKx2      ( clk2      ),
     .NMI        ( nmi       ),    // NMI
     .IRQ        ( 1'b0      ),    // IRQ1
-    .RW         ( mcu_wrn   ),   // CS2
+    .WR         ( mcu_wr    ),   // CS2
     .AD         ( mcu_AB    ),   //  AS ? {PO4,PO3}
     .DO         ( mcu_dout  ),   // ~AS ? {PO3}
     .DI         ( mcu_din   ),   //       {PI3}
@@ -132,7 +135,8 @@ jtframe_ram #(.aw(12)) u_ram(
 );
 
 `ifdef SIMULATION
-always @(posedge mcu_haltn) $display("MCU_HALTN rose");
-always @(negedge mcu_haltn) $display("MCU_HALTN fell");
+always @(posedge mcu_haltn)   $display("MCU_HALTN rose");
+always @(negedge mcu_haltn)   $display("MCU_HALTN fell");
+always @(posedge mcu_nmi_set) $display("MCU NMI set");
 `endif
 endmodule

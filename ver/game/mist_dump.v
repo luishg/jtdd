@@ -30,6 +30,8 @@ module mist_dump(
                 $dumpvars(0,mist_test);
             `else
                 $dumpvars(1,mist_test.UUT.u_game.u_main);
+                $dumpvars(0,mist_test.UUT.u_game.u_mcu);
+                $dumpvars(1,mist_test.UUT.u_game);
                 $dumpvars(1,mist_test.frame_cnt);
             `endif
             $dumpon;
