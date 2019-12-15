@@ -25,7 +25,10 @@ module jtdd_mcu(
     input              clk,
     input              rst,
     input              cen_Q,
-    input              pxl_cen,
+    input              cen12,
+    input              cen12b,
+    input              cen6,
+    input              cen6b,
     // CPU bus
     input      [ 8:0]  cpu_AB,
     input              cpu_wrn,
@@ -84,7 +87,11 @@ end
 reg cen_halted;
 always @(negedge clk) cen_halted <= halted_n;
 
-wire clk2 = clk & pxl_cen & cen_halted;
+wire cen_rise  = cen6   & cen_halted;
+wire cen_fall  = cen6b  & cen_halted;
+wire cen_rise2 = cen12  & cen_halted;
+wire cen_fall2 = cen12b & cen_halted;
+
 wire [7:0] P6;
 wire       nmi;
 wire       nmi_clr = ~P6[0];
@@ -107,8 +114,12 @@ jtframe_ff u_nmi(
 wire [7:0] mcu_din = shared_dout; //shared_cs ? shared_dout : ram_dout;
 
 jt63701 u_mcu(
-    .RST        ( rst       ),
-    .CLKx2      ( clk2      ),
+    .rst        ( rst       ),
+    .clk        ( clk       ),
+    .cen_rise2  ( cen_rise2 ),
+    .cen_fall2  ( cen_fall2 ),
+    .cen_rise   ( cen_rise  ),
+    .cen_fall   ( cen_fall  ),
     .BA         ( ba        ),
     .NMI        ( nmi       ),  // NMI
     .IRQ        ( 1'b0      ),  // IRQ1
@@ -132,7 +143,7 @@ jt63701 u_mcu(
 
 jtframe_ram #(.aw(9)) u_shared(
     .clk    ( clk         ),
-    .cen    ( pxl_cen     ),
+    .cen    ( cen6        ),
     .data   ( shared_data ),
     .addr   ( shared_addr ),
     .we     ( shared_we   ),

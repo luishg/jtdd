@@ -237,7 +237,10 @@ jtdd_mcu u_mcu(
     .clk          (  clk             ),
     .rst          (  rst_game        ),
     .cen_Q        (  cpu_cen         ),
-    .pxl_cen      (  pxl_cen         ),
+    .cen6         (  cen6            ),
+    .cen6b        (  cen6b           ),
+    .cen12        (  cen12           ),
+    .cen12b       (  cen12b          ),
     // CPU bus
     .cpu_AB       (  cpu_AB[8:0]     ),
     .cpu_wrn      (  cpu_wrn         ),
