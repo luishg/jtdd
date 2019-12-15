@@ -9,4 +9,4 @@
 	url = https://github.com/jotego/jt51
 [submodule "modules/HD63701"]
 	path = modules/HD63701
-	url = https://github.com/thasega/HD63701
+	url = https://github.com/jotego/HD63701
