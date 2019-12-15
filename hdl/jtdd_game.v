@@ -233,6 +233,7 @@ jtdd_main u_main(
     .dipsw_b        ( dipsw_b       )
 );
 
+`ifndef NOMCU
 jtdd_mcu u_mcu(
     .clk          (  clk             ),
     .rst          (  rst_game        ),
@@ -257,6 +258,21 @@ jtdd_mcu u_mcu(
     .prom_din     (  prog_data       ),
     .prom_we      (  prom_mcu_we     )
 );
+`else 
+reg    irqmain;
+assign mcu_irqmain = irqmain;
+assign mcu_ban = 1'b0;
+always @(posedge clk) irqmain <= mcu_nmi_set;
+wire shared_we = com_cs && !cpu_wrn;
+jtframe_ram #(.aw(9)) u_shared(
+    .clk    ( clk         ),
+    .cen    ( cpu_cen     ),
+    .data   ( cpu_dout    ),
+    .addr   ( cpu_AB[8:0] ),
+    .we     ( shared_we   ),
+    .q      ( mcu_ram     )
+);
+`endif
 
 jtdd_video u_video(
     .clk          (  clk             ),
