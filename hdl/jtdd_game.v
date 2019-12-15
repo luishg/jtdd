@@ -111,11 +111,35 @@ assign dwnld_busy = downloading;
 
 wire cen12, cen8, cen6, cen3, cen3q, cen1p5, cen12b, cen6b, cen3b, cen3qb;
 wire cpu_cen;
+wire rom_ready;
 
 assign cen_E    = cen3b;
 assign cen_Q    = cen3qb;
 assign pxl_cen  = cen6;
 assign pxl2_cen = cen12;
+
+`ifdef MISTER
+
+reg rst_game;
+
+always @(negedge clk)
+    rst_game <= rst || !rom_ready;
+
+`else
+
+reg rst_game=1'b1;
+
+always @(posedge clk) begin : rstgame_gen
+    reg rst_aux;
+    if( rst || !rom_ready ) begin
+        {rst_game,rst_aux} <= 2'b11;
+    end
+    else begin
+        {rst_game,rst_aux} <= {rst_aux, downloading };
+    end
+end
+
+`endif
 
 jtframe_cen48 u_cen(
     .clk     (  clk      ),    // 48 MHz
@@ -156,7 +180,7 @@ jtdd_dip u_dip(
 
 jtdd_main u_main(
     .clk            ( clk           ),
-    .rst            ( rst           ),
+    .rst            ( rst_game      ),
     .cen_E          ( cen_E         ),
     .cen_Q          ( cen_Q         ),
     .cpu_cen        ( cpu_cen       ),
@@ -211,7 +235,7 @@ jtdd_main u_main(
 
 jtdd_mcu u_mcu(
     .clk          (  clk             ),
-    .rst          (  rst             ),
+    .rst          (  rst_game        ),
     .cen_Q        (  cpu_cen         ),
     .pxl_cen      (  pxl_cen         ),
     // CPU bus

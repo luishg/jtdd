@@ -57,7 +57,12 @@ reg  [7:0] shift;
 reg  [2:0] pal, pal0;
 wire [3:0] mux = flip ? shift[7:4] : shift[3:0];
 
+`ifdef SIMULATION
 reg char_error;
+`define CHAR_ERROR char_error<=~rom_ok;
+`else
+`define CHAR_ERROR 
+`endif
 
 always @(posedge clk) if(pxl_cen) begin
     char_pxl  <= { pal0, mux };
@@ -69,7 +74,7 @@ always @(posedge clk) if(pxl_cen) begin
             shift     <= { 
                 rom_data[7], rom_data[5], rom_data[3], rom_data[1],
                 rom_data[6], rom_data[4], rom_data[2], rom_data[0] };
-            char_error <= ~rom_ok;
+            `CHAR_ERROR
         end
         1'b1: begin
             shift <= flip ? (shift<<4) : (shift >> 4);

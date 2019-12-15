@@ -65,9 +65,9 @@ module jtdd_video(
     input [3:0]        prom_din,
     input              prom_prio_we,
     // Pixel output
-    output reg [3:0]   red,
-    output reg [3:0]   green,
-    output reg [3:0]   blue
+    output     [3:0]   red,
+    output     [3:0]   green,
+    output     [3:0]   blue
 );
 
 wire [6:0]  char_pxl;  // called mcol in schematics

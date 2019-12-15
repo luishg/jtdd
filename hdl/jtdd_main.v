@@ -50,7 +50,7 @@ module jtdd_main(
     // Characters
     input       [7:0]  char_dout,
     output      [7:0]  cpu_dout,
-    output  reg        char_cs,
+    output             char_cs,
     // Object
     input       [7:0]  obj_dout,
     output  reg        obj_cs,
@@ -81,7 +81,7 @@ module jtdd_main(
 
 wire [15:0] A;
 wire nRESET;
-reg scrpos_cs, io_cs, ram_cs, misc_cs, banked_cs;
+reg io_cs, ram_cs, misc_cs, banked_cs;
 
 // These refer to memory locations to which a write operation
 // has some hardware effect. In reality A[3] must be high too
@@ -90,16 +90,17 @@ reg scrpos_cs, io_cs, ram_cs, misc_cs, banked_cs;
 reg w3801, w3802, w3803, w3804, w3805, w3806, w3807;
 wire scrhpos_cs  = w3801; // sch. sheet 8/10
 wire scrvpos_cs  = w3802;
+`ifdef SIMULATION
 wire nmi_clr     = w3803;
 wire firq_clr    = w3804;
 wire irq_clr     = w3805;
+`endif
 wire sndlatch_cs = w3806;
 assign mcu_nmi_set = w3807;
 
 assign char_cs   = ram_cs; // shared
 
 always @(*) begin
-    scrpos_cs   = 1'b0;
     scr_cs      = 1'b0;
     io_cs       = 1'b0;
     pal_cs      = 1'b0;

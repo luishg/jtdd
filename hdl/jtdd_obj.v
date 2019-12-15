@@ -31,7 +31,7 @@ module jtdd_obj(
     input              obj_cs,
     input              cpu_wrn,
     input      [ 7:0]  cpu_dout,
-    output reg [ 7:0]  obj_dout,
+    output     [ 7:0]  obj_dout,
     // screen
     input      [ 7:0]  HPOS,
     input      [ 7:0]  VPOS,
@@ -145,6 +145,7 @@ always @(posedge clk, posedge rst) begin
                     end                
                 end
             end
+            default: state <= 0;
         endcase
     end
 end
@@ -196,7 +197,7 @@ always @(posedge clk, posedge rst) begin
             pxl_cnt <= 4'd0;
             posx    <= { scan_attr[1], scan_x };
             ok_dly  <= 1'b0;
-            rom_addr  <= { scan_attr2[3:0], scan_id, scan_y[3:0], 
+            rom_addr  <= { scan_attr2[3:0], scan_id, scan_y[3:0]^{4{vflip}}, 
                 2'b00^{2{hflip}} };
         end
         if( copying ) begin

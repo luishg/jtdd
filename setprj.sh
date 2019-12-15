@@ -1,3 +1,4 @@
 #!/bin/bash
-JTDD=$(pwd)
-JTFRAME=$JTDD/modules/jtframe
+export JTROOT=$(pwd)
+export JTFRAME=$JTROOT/modules/jtframe
+alias jtcore="$JTFRAME/bin/jtcore dd -mr"
