@@ -1,12 +1,6 @@
 [submodule "modules/jtframe"]
 	path = modules/jtframe
 	url  = https://github.com/jotego/jtframe 
-[submodule "modules/mc6809"]
-	path = modules/mc6809
-	url  = https://github.com/cavnex/mc6809
 [submodule "jt51"]
 	path = modules/jt51
 	url = https://github.com/jotego/jt51
-[submodule "modules/HD63701"]
-	path = modules/HD63701
-	url = https://github.com/jotego/HD63701
