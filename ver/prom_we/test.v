@@ -85,9 +85,14 @@ always @(negedge prog_we) begin
 end
 
 initial begin
+`ifndef NCVERILOG
     $dumpfile("test.lxt");
     $dumpvars(0,test);
     $dumpon;    
+`else 
+    $shm_open("test.shm");
+    $shm_probe(test,"AS");
+`endif
 end
 
 endmodule
