@@ -48,25 +48,25 @@ module jtdd_mcu(
 
 );
 
-reg [8:0] shared_addr;
-reg       shared_we;
-reg [7:0] shared_data;
+wire        vma;
+reg         shared_cs;
+reg [8:0]   shared_addr;
+reg         shared_we;
+reg [7:0]   shared_data;
 
-wire        mcu_wr;
+wire        rnw;
 wire [15:0] mcu_AB;
 wire [ 7:0] mcu_dout;
 
-wire    shared_cs = mcu_AB[15:14]==2'b10;
-wire    ba;
-assign  mcu_ban = ~ba;
+assign  mcu_ban = vma;
 
 always @(*) begin
     shared_addr = shared_cs ? mcu_AB[8:0] : cpu_AB;
     shared_data = shared_cs ? mcu_dout : cpu_dout;
-    if( !ba ) begin
+    if( vma ) begin
         shared_addr = mcu_AB[8:0];
         shared_data = mcu_dout;
-        shared_we   = mcu_wr;
+        shared_we   = ~rnw & shared_cs;
     end else begin
         shared_addr = cpu_AB;
         shared_data = cpu_dout;
@@ -74,11 +74,11 @@ always @(*) begin
     end
 end
 
-wire [7:0] P6;
+reg  [7:0] p6_dout;
 wire       nmi;
-wire       nmi_clr = ~P6[0];
+wire       nmi_clr = ~p6_dout[0];
 
-assign mcu_irqmain =  P6[1];
+assign mcu_irqmain =  p6_dout[1];
 
 jtframe_ff u_nmi(
     .clk     (   clk          ),
@@ -95,33 +95,71 @@ jtframe_ff u_nmi(
 //wire [7:0] ram_dout;
 wire [7:0] mcu_din = shared_dout; //shared_cs ? shared_dout : ram_dout;
 
-jt63701 u_mcu(
+// Address decoder
+always @(*) begin
+    rom_cs    = 1'b0;
+    ram_cs    = 1'b0;
+    shared_cs = 1'b0;
+    port_cs   = 1'b0;
+    if( vma ) begin
+        if( A[15:14]==2'b11 )        rom_cs    = 1'b1; // Cxxx
+        if( A>=16'h40 && A<16'h140 ) ram_cs    = 1'b1;
+        if( A[15:12]==4'h8  )        shared_cs = 1'b1; // 8xxx
+        if( A<16'h28 )               port_cs   = 1'b1;
+    end
+end
+
+// Ports
+always @(posedge clk, posedge rst) begin
+    if( rst ) begin
+        p6_dout <= 8'd0;
+    end else begin
+        if( port_cs && A[5:0]==6'h17 ) p6_dout <= data_out;
+    end
+end
+
+`ifdef SIMULATION
+always @(posedge port_cs) begin
+    if( A[5:0] !=6'h17 ) $display("WARNING: Access at non-supported MCU port %X", A[5:0] );
+end
+`endif
+
+// Input multiplexer
+always @(*) begin
+    case(1'b1)
+        default:   data_in = rom_data;
+        ram_cs:    data_in = ram_dout;
+        shared_cs: data_in = shared_dout;
+    endcase
+end
+
+// Clock enable
+reg  waitn;
+wire cpu_cen = cen6 & waitn;
+
+always @(negedge clk) begin : cpu_clockenable
+    reg last_cs;
+    last_cs <= rom_cs;
+    if( rom_cs && !last_cs ) waitn <= 1'b0;
+    else if( rom_ok) waitn <= 1'b1;
+end
+
+m6801 u_6801(   
     .rst        ( rst           ),
     .clk        ( clk           ),
-    .cen_rise2  ( cen12         ),
-    .cen_fall2  ( cen12b        ),
-    .cen_rise   ( cen6          ),
-    .cen_fall   ( cen6b         ),
-    // Control lines
-    .haltn      ( mcu_haltn     ),    
-    .ba         ( ba            ),
+    .cen        ( cpu_cen       ),
+    .rw         ( rnw           ),
+    .vma        ( vma           ),
+    .address    ( address       ),
+    .data_in    ( data_in       ),
+    .data_out   ( data_out      ),        
+    .halt       ( halt          ),
+    .irq        ( irq           ),
     .nmi        ( nmi           ),
-    .irq        ( 1'b0          ),
-    .wr         ( mcu_wr        ),
-    .AD         ( mcu_AB        ),
-    .dout       ( mcu_dout      ),
-    .din        ( mcu_din       ),
-    .p1_din     ( 8'hff         ),
-    .p1_dout    (               ),
-    .p2_din     ( 5'h1f         ),
-    .p2_dout    (               ),
-    .p6_din     ( 8'hff         ),
-    .p6_dout    ( P6            ),
-    // PROM programming
-    .rom_addr   ( rom_addr      ),
-    .rom_data   ( rom_data      ),
-    .rom_cs     ( rom_cs        ),
-    .rom_ok     ( rom_ok        )
+    .irq_icf    ( irq_icf       ),
+    .irq_ocf    ( irq_ocf       ),
+    .irq_tof    ( irq_tof       ),
+    .irq_sci    ( irq_sci       )
 );
 
 jtframe_ram #(.aw(9)) u_shared(
