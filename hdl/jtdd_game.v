@@ -383,7 +383,7 @@ jtframe_rom #(
     .char_dout   ( char_data     ),
     .main_dout   ( main_data     ),
     .snd_dout    (               ),
-    .snd_dout    ( mcu_data      ),
+    .snd2_dout   ( mcu_data      ),
     .obj_dout    ( obj_data      ),
     .map1_dout   (               ),
     .map2_dout   (               ),

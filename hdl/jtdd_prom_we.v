@@ -135,7 +135,7 @@ always @(posedge clk) begin
             `INFO_OBJ
         end
         else if(ioctl_addr[21:12] < PROM_ADDR[21:12] ) begin // MCU
-            prog_addr <= { 8'hC,2'b0, ioctl_addr[13:0] };
+            prog_addr <= { 8'hC,3'b0, ioctl_addr[13:1] };
             prog_we   <= 1'b0;
             prog_mask <= {ioctl_addr[0], ~ioctl_addr[0]};
             `INFO_MCU
