@@ -1,1 +1,1 @@
-../../modules/HD63701/HD63701_defs.i
+../../modules/jtframe/hdl/cpu/63701/HD63701_defs.i

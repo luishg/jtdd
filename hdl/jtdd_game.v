@@ -92,6 +92,9 @@ wire               char_ok, scr_ok, obj_ok, main_ok;
 wire       [17:0]  main_addr;
 wire               main_cs;
 wire       [ 7:0]  main_data;
+wire       [13:0]  mcu_addr;
+wire       [ 7:0]  mcu_data;
+wire               mcu_cs, mcu_ok;
 // Sound
 wire               snd_rstb, snd_irq;
 wire       [ 7:0]  snd_latch;
@@ -101,9 +104,7 @@ wire       [ 7:0]  dipsw_a, dipsw_b;
 wire               mcu_irqmain, mcu_haltn, com_cs, mcu_nmi_set, mcu_ban;
 wire       [ 7:0]  mcu_ram;
 // PROM programming
-wire       [ 1:0]  prom_we;
-wire               prom_prio_we = prom_we[0];
-wire               prom_mcu_we  = prom_we[1];
+wire               prom_prio_we;
 
 wire       [ 8:0]  scrhpos, scrvpos;
 
@@ -165,7 +166,7 @@ jtdd_prom_we u_prom(
     .prog_data    ( prog_data       ),
     .prog_mask    ( prog_mask       ),
     .prog_we      ( prog_we         ),
-    .prom_we      ( prom_we         )
+    .prom_we      ( prom_prio_we    )
 );
 
 jtdd_dip u_dip(
@@ -254,9 +255,10 @@ jtdd_mcu u_mcu(
     .mcu_irqmain  (  mcu_irqmain     ),
     .mcu_ban      (  mcu_ban         ),
     // PROM programming
-    .prog_addr    (  prog_addr[13:0] ),
-    .prom_din     (  prog_data       ),
-    .prom_we      (  prom_mcu_we     )
+    .rom_addr     (  mcu_addr        ),
+    .rom_data     (  mcu_data        ),
+    .rom_cs       (  mcu_cs          ),
+    .rom_ok       (  mcu_ok          )
 );
 `else 
 reg    irqmain;
@@ -343,8 +345,10 @@ jtframe_rom #(
     .obj_aw     ( 18              ),
     .scr1_aw    ( 17              ),
     .scr2_aw    ( 15              ),
+    .snd2_aw    ( 14              ), // MCU
     // MAP slots used for ADPCM
     .snd_offset ( SND_ADDR>>1     ),
+    .snd2_offset( 22'hC_0000      ), // MCU
     .char_offset( CHAR_ADDR>>1    ),
     .scr1_offset( SCR_ADDR        ),
     .scr2_offset(  ),
@@ -357,8 +361,10 @@ jtframe_rom #(
 
     .main_cs     ( main_cs       ),
     .snd_cs      ( 1'b0          ),
+    .snd2_cs     ( mcu_cs        ),
     .main_ok     ( main_ok       ),
     .snd_ok      (               ),
+    .snd2_ok     ( mcu_ok        ),
     .scr1_ok     ( scr_ok        ),
     .scr2_ok     (               ),
     .char_ok     ( char_ok       ),
@@ -367,6 +373,7 @@ jtframe_rom #(
     .char_addr   ( char_addr     ),
     .main_addr   ( main_addr     ),
     .snd_addr    ( 15'd0         ),
+    .snd2_addr   ( mcu_addr      ),
     .obj_addr    ( obj_addr      ),
     .scr1_addr   ( scr_addr      ),
     .scr2_addr   ( 15'd0         ),
@@ -376,6 +383,7 @@ jtframe_rom #(
     .char_dout   ( char_data     ),
     .main_dout   ( main_data     ),
     .snd_dout    (               ),
+    .snd_dout    ( mcu_data      ),
     .obj_dout    ( obj_data      ),
     .map1_dout   (               ),
     .map2_dout   (               ),

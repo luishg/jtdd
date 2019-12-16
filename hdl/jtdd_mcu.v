@@ -41,9 +41,10 @@ module jtdd_mcu(
     input              mcu_haltn,
     output             mcu_irqmain,
     // PROM programming
-    input      [13:0]  prog_addr,
-    input      [ 7:0]  prom_din,
-    input              prom_we
+    output     [13:0]  rom_addr,
+    input      [ 7:0]  rom_data,
+    output             rom_cs,
+    input              rom_ok
 
 );
 
@@ -57,6 +58,7 @@ wire [ 7:0] mcu_dout;
 
 wire    shared_cs = mcu_AB[15:14]==2'b10;
 wire    ba;
+assign  mcu_ban = ~ba;
 
 always @(*) begin
     shared_addr = shared_cs ? mcu_AB[8:0] : cpu_AB;
@@ -71,26 +73,6 @@ always @(*) begin
         shared_we   = com_cs & ~cpu_wrn;    
     end
 end
-
-reg     halted_n;
-assign  mcu_ban = halted_n;
-
-always @(posedge clk, posedge rst) begin
-    if( rst ) begin
-        halted_n <= 1'b1;
-    end else begin
-        if( !mcu_haltn && ba ) halted_n <= 1'b0; // only halt when bus is available
-        if( mcu_haltn ) halted_n <= 1'b1;
-    end
-end
-
-reg cen_halted;
-always @(negedge clk) cen_halted <= halted_n;
-
-wire cen_rise  = cen6   & cen_halted;
-wire cen_fall  = cen6b  & cen_halted;
-wire cen_rise2 = cen12  & cen_halted;
-wire cen_fall2 = cen12b & cen_halted;
 
 wire [7:0] P6;
 wire       nmi;
@@ -114,31 +96,32 @@ jtframe_ff u_nmi(
 wire [7:0] mcu_din = shared_dout; //shared_cs ? shared_dout : ram_dout;
 
 jt63701 u_mcu(
-    .rst        ( rst       ),
-    .clk        ( clk       ),
-    .cen_rise2  ( cen_rise2 ),
-    .cen_fall2  ( cen_fall2 ),
-    .cen_rise   ( cen_rise  ),
-    .cen_fall   ( cen_fall  ),
-    .BA         ( ba        ),
-    .NMI        ( nmi       ),  // NMI
-    .IRQ        ( 1'b0      ),  // IRQ1
-    .WR         ( mcu_wr    ),  // CS2
-    .AD         ( mcu_AB    ),  //  AS ? {PO4,PO3}
-    .DO         ( mcu_dout  ),  // ~AS ? {PO3}
-    .DI         ( mcu_din   ),  //       {PI3}
-    .PI1        ( 8'hff     ),
-    .PO1        (           ),
-    .PI2        ( 5'h1f     ),
-    .PO2        (           ),
-    .PI6        ( 8'hff     ),
-    .PO6        ( P6        ),
+    .rst        ( rst           ),
+    .clk        ( clk           ),
+    .cen_rise2  ( cen12         ),
+    .cen_fall2  ( cen12b        ),
+    .cen_rise   ( cen6          ),
+    .cen_fall   ( cen6b         ),
+    // Control lines
+    .haltn      ( mcu_haltn     ),    
+    .ba         ( ba            ),
+    .nmi        ( nmi           ),
+    .irq        ( 1'b0          ),
+    .wr         ( mcu_wr        ),
+    .AD         ( mcu_AB        ),
+    .dout       ( mcu_dout      ),
+    .din        ( mcu_din       ),
+    .p1_din     ( 8'hff         ),
+    .p1_dout    (               ),
+    .p2_din     ( 5'h1f         ),
+    .p2_dout    (               ),
+    .p6_din     ( 8'hff         ),
+    .p6_dout    ( P6            ),
     // PROM programming
-    .prog_addr  ( prog_addr ),
-    .prom_din   ( prom_din  ),
-    .prom_we    ( prom_we   ),
-    // for DEBUG
-    .phase      (           )
+    .rom_addr   ( rom_addr      ),
+    .rom_data   ( rom_data      ),
+    .rom_cs     ( rom_cs        ),
+    .rom_ok     ( rom_ok        )
 );
 
 jtframe_ram #(.aw(9)) u_shared(

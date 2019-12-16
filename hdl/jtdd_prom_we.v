@@ -35,10 +35,10 @@ module jtdd_prom_we(
     output reg [ 7:0]    prog_data,
     output reg [ 1:0]    prog_mask, // active low
     output reg           prog_we,
-    output reg [ 1:0]    prom_we
+    output reg           prom_we
 );
 
-localparam PW=2;
+localparam PW=1;
 
 localparam BANK_ADDR   = 22'h00000;
 localparam MAIN_ADDR   = 22'h20000;
@@ -135,23 +135,17 @@ always @(posedge clk) begin
             `INFO_OBJ
         end
         else if(ioctl_addr[21:12] < PROM_ADDR[21:12] ) begin // MCU
-            prog_addr <= ioctl_addr;
+            prog_addr <= { 8'hC,2'b0, ioctl_addr[13:0] };
             prog_we   <= 1'b0;
-            prog_mask <= 2'b11;
-            prom_we0  <= 2'b10;
-            set_strobe <= 1'b1;
+            prog_mask <= {ioctl_addr[0], ~ioctl_addr[0]};
             `INFO_MCU
         end
         else begin // PROMs
             prog_addr <= ioctl_addr;
             prog_we   <= 1'b0;
             prog_mask <= 2'b11;
-            prom_we0  <= 2'd0;
-            case(ioctl_addr[10:8])
-                3'h0:      prom_we0[0] <= 1'b1;
-                default:;
-            endcase
-            set_strobe <= 1'b1;
+            prom_we0  <= ioctl_addr[10:8] == 3'd0;
+            set_strobe<= 1'b1;
             `INFO_PROM
         end
     end
