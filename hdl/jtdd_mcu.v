@@ -56,11 +56,9 @@ wire [15:0] A;
 wire [ 7:0] mcu_dout;
 reg  [ 7:0] mcu_din;
 
-assign  mcu_ban = /* vma & */~rom_cs;
+assign  mcu_ban = vma;
 
 always @(*) begin
-    shared_addr = shared_cs ? A[8:0] : cpu_AB;
-    shared_data = shared_cs ? mcu_dout : cpu_dout;
     if( vma ) begin
         shared_addr = A[8:0];
         shared_data = mcu_dout;
@@ -68,7 +66,7 @@ always @(*) begin
     end else begin
         shared_addr = cpu_AB;
         shared_data = cpu_dout;
-        shared_we   = com_cs & ~cpu_wrn;    
+        shared_we   = ~cpu_wrn & com_cs;
     end
 end
 
@@ -108,10 +106,12 @@ always @(*) begin
 end
 
 // Ports
+reg [7:0] port_map[0:31];
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
         p6_dout <= 8'd0;
     end else begin
+        port_map[A[4:0]] <= mcu_dout;
         if( port_cs && A[5:0]==6'h17 ) p6_dout <= mcu_dout;
     end
 end
@@ -120,9 +120,9 @@ end
 always @(posedge port_cs) begin
     if( A[5:0] !=6'h17 && vma ) begin
         if( rnw )
-            $display("WARNING: Access to non-supported MCU port %X", A[5:0] );
+            $display("WARNING: Access to non-supported MCU port %X", A );
         else
-            $display("WARNING: Write to non-supported MCU port %X, data = %X", A[5:0], mcu_dout );
+            $display("WARNING: Write to non-supported MCU port %X, data = %X", A, mcu_dout );
     end
 end
 `endif
@@ -133,6 +133,7 @@ always @(*) begin
         default:   mcu_din = rom_data;
         ram_cs:    mcu_din = ram_dout;
         shared_cs: mcu_din = shared_dout;
+        port_cs:   mcu_din = port_map[A[4:0]];
     endcase
 end
 
