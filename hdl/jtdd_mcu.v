@@ -139,7 +139,7 @@ end
 
 // Clock enable
 reg  waitn;
-wire cpu_cen = cen6 & waitn;
+wire cpu_cen = cen6 & (waitn|rst);
 
 always @(negedge clk,posedge rst) begin : cpu_clockenable
     reg last_cs;

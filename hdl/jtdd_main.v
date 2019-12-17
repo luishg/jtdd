@@ -235,8 +235,8 @@ reg E,Q;
 assign cpu_cen = Q;
 
 always @(negedge clk) begin
-    E <= cen_E & ( ~rom_cs | rom_ok );
-    Q <= cen_Q & ( ~rom_cs | rom_ok );
+    E <= cen_E & (~rom_cs | rom_ok | ~nRESET);
+    Q <= cen_Q & (~rom_cs | rom_ok | ~nRESET);
 end
 
 // cycle accurate core

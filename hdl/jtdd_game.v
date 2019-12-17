@@ -117,7 +117,7 @@ wire rom_ready;
 assign cen_E    = cen3b;
 assign cen_Q    = cen3qb;
 assign pxl_cen  = cen6;
-assign pxl_cenb = cen6b;
+wire   pxl_cenb = cen6b;
 assign pxl2_cen = cen12;
 
 `ifdef MISTER
