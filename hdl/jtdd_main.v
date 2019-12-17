@@ -37,7 +37,7 @@ module jtdd_main(
     input              mcu_irqmain,
     input              mcu_ban,
     output             mcu_nmi_set,
-    output  reg        mcu_haltn,
+    output  reg        mcu_halt,
     output  reg        com_cs,
     // Palette
     output  reg        pal_cs,
@@ -152,7 +152,7 @@ always @(posedge clk or posedge rst) begin
     if( rst ) begin
         bank        <= 3'd0;
         flip        <= 1'b0;
-        mcu_haltn   <= 1'b1;
+        mcu_halt    <= 1'b0;
         scrhpos     <= 9'b0;
         scrvpos     <= 9'b0;
         snd_rstb    <= 1'b0;
@@ -169,7 +169,7 @@ always @(posedge clk or posedge rst) begin
             scrvpos[8] <= cpu_dout[1];
             flip       <= cpu_dout[2];
             snd_rstb   <= cpu_dout[3];
-            mcu_haltn  <=~cpu_dout[4];
+            mcu_halt   <= cpu_dout[4];
             bank       <= cpu_dout[7:5];
         end
     end

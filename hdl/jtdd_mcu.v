@@ -25,10 +25,7 @@ module jtdd_mcu(
     input              clk,
     input              rst,
     input              cen_Q,
-    input              cen12,
-    input              cen12b,
     input              cen6,
-    input              cen6b,
     // CPU bus
     input      [ 8:0]  cpu_AB,
     input              cpu_wrn,
@@ -38,33 +35,34 @@ module jtdd_mcu(
     input              com_cs,
     output             mcu_ban,
     input              mcu_nmi_set,
-    input              mcu_haltn,
+    input              mcu_halt,
     output             mcu_irqmain,
     // PROM programming
     output     [13:0]  rom_addr,
     input      [ 7:0]  rom_data,
-    output             rom_cs,
+    output reg         rom_cs,
     input              rom_ok
 
 );
 
 wire        vma;
-reg         shared_cs;
+reg         port_cs, ram_cs, shared_cs;
 reg [8:0]   shared_addr;
 reg         shared_we;
 reg [7:0]   shared_data;
 
 wire        rnw;
-wire [15:0] mcu_AB;
+wire [15:0] A;
 wire [ 7:0] mcu_dout;
+reg  [ 7:0] mcu_din;
 
-assign  mcu_ban = vma;
+assign  mcu_ban = /* vma & */~rom_cs;
 
 always @(*) begin
-    shared_addr = shared_cs ? mcu_AB[8:0] : cpu_AB;
+    shared_addr = shared_cs ? A[8:0] : cpu_AB;
     shared_data = shared_cs ? mcu_dout : cpu_dout;
     if( vma ) begin
-        shared_addr = mcu_AB[8:0];
+        shared_addr = A[8:0];
         shared_data = mcu_dout;
         shared_we   = ~rnw & shared_cs;
     end else begin
@@ -92,8 +90,8 @@ jtframe_ff u_nmi(
     .qn      (                )
 );
 
-//wire [7:0] ram_dout;
-wire [7:0] mcu_din = shared_dout; //shared_cs ? shared_dout : ram_dout;
+wire [7:0] ram_dout;
+assign rom_addr = A[13:0];
 
 // Address decoder
 always @(*) begin
@@ -114,22 +112,27 @@ always @(posedge clk, posedge rst) begin
     if( rst ) begin
         p6_dout <= 8'd0;
     end else begin
-        if( port_cs && A[5:0]==6'h17 ) p6_dout <= data_out;
+        if( port_cs && A[5:0]==6'h17 ) p6_dout <= mcu_dout;
     end
 end
 
 `ifdef SIMULATION
 always @(posedge port_cs) begin
-    if( A[5:0] !=6'h17 ) $display("WARNING: Access at non-supported MCU port %X", A[5:0] );
+    if( A[5:0] !=6'h17 && vma ) begin
+        if( rnw )
+            $display("WARNING: Access to non-supported MCU port %X", A[5:0] );
+        else
+            $display("WARNING: Write to non-supported MCU port %X, data = %X", A[5:0], mcu_dout );
+    end
 end
 `endif
 
 // Input multiplexer
 always @(*) begin
     case(1'b1)
-        default:   data_in = rom_data;
-        ram_cs:    data_in = ram_dout;
-        shared_cs: data_in = shared_dout;
+        default:   mcu_din = rom_data;
+        ram_cs:    mcu_din = ram_dout;
+        shared_cs: mcu_din = shared_dout;
     endcase
 end
 
@@ -137,11 +140,16 @@ end
 reg  waitn;
 wire cpu_cen = cen6 & waitn;
 
-always @(negedge clk) begin : cpu_clockenable
+always @(negedge clk,posedge rst) begin : cpu_clockenable
     reg last_cs;
-    last_cs <= rom_cs;
-    if( rom_cs && !last_cs ) waitn <= 1'b0;
-    else if( rom_ok) waitn <= 1'b1;
+    if( rst ) begin
+        waitn   <= 1'b1;
+        last_cs <= 1'b0;
+    end else begin
+        last_cs <= rom_cs;
+        if( rom_cs && !last_cs ) waitn <= 1'b0;
+        else if( rom_ok) waitn <= 1'b1;
+    end
 end
 
 m6801 u_6801(   
@@ -150,10 +158,10 @@ m6801 u_6801(
     .cen        ( cpu_cen       ),
     .rw         ( rnw           ),
     .vma        ( vma           ),
-    .address    ( address       ),
-    .data_in    ( data_in       ),
-    .data_out   ( data_out      ),        
-    .halt       ( halt          ),
+    .address    ( A             ),
+    .data_in    ( mcu_din       ),
+    .data_out   ( mcu_dout      ),
+    .halt       ( mcu_halt      ),
     .irq        ( irq           ),
     .nmi        ( nmi           ),
     .irq_icf    ( irq_icf       ),
@@ -171,9 +179,20 @@ jtframe_ram #(.aw(9)) u_shared(
     .q      ( shared_dout )
 );
 
+wire intram_we = ram_cs & ~rnw;
+
+jtframe_ram #(.aw(8)) u_intram(
+    .clk    ( clk         ),
+    .cen    ( cpu_cen     ),
+    .data   ( mcu_dout    ),
+    .addr   ( A[7:0]      ),
+    .we     ( intram_we   ),
+    .q      ( ram_dout    )
+);
+
 `ifdef SIMULATION
-always @(posedge mcu_haltn)   $display("MCU_HALTN rose");
-always @(negedge mcu_haltn)   $display("MCU_HALTN fell");
+always @(posedge mcu_halt)   $display("MCU_HALT rose");
+always @(negedge mcu_halt)   $display("MCU_HALT fell");
 always @(posedge mcu_nmi_set) $display("MCU NMI set");
 `endif
 endmodule

@@ -101,7 +101,7 @@ wire       [ 7:0]  snd_latch;
 // DIP
 wire       [ 7:0]  dipsw_a, dipsw_b;
 // MCU
-wire               mcu_irqmain, mcu_haltn, com_cs, mcu_nmi_set, mcu_ban;
+wire               mcu_irqmain, mcu_halt, com_cs, mcu_nmi_set, mcu_ban;
 wire       [ 7:0]  mcu_ram;
 // PROM programming
 wire               prom_prio_we;
@@ -189,7 +189,7 @@ jtdd_main u_main(
     .IMS            ( IMS           ), // =VPOS[3]
     // MCU
     .mcu_irqmain    ( mcu_irqmain   ),
-    .mcu_haltn      ( mcu_haltn     ),
+    .mcu_halt       ( mcu_halt      ),
     .mcu_ban        ( mcu_ban       ),
     .com_cs         ( com_cs        ),
     .mcu_nmi_set    ( mcu_nmi_set   ),
@@ -240,9 +240,6 @@ jtdd_mcu u_mcu(
     .rst          (  rst_game        ),
     .cen_Q        (  cpu_cen         ),
     .cen6         (  cen6            ),
-    .cen6b        (  cen6b           ),
-    .cen12        (  cen12           ),
-    .cen12b       (  cen12b          ),
     // CPU bus
     .cpu_AB       (  cpu_AB[8:0]     ),
     .cpu_wrn      (  cpu_wrn         ),
@@ -251,7 +248,7 @@ jtdd_mcu u_mcu(
     // CPU Interface
     .com_cs       (  com_cs          ),
     .mcu_nmi_set  (  mcu_nmi_set     ),
-    .mcu_haltn    (  mcu_haltn       ),
+    .mcu_halt     (  mcu_halt        ),
     .mcu_irqmain  (  mcu_irqmain     ),
     .mcu_ban      (  mcu_ban         ),
     // PROM programming
