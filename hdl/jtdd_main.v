@@ -179,10 +179,15 @@ assign nRESET = ~rst;
 
 reg [7:0] cabinet_input;
 
+function [5:0] fix_joy;
+    input [5:0] joy;
+    fix_joy = { joy[5:4],joy[2],joy[3],joy[1:0]};
+endfunction
+
 always @(posedge clk) begin
     case( cpu_AB[3:0])
-        4'd0:    cabinet_input <= { start_button, joystick1[5:0] };
-        4'd1:    cabinet_input <= { coin_input,   joystick2[5:0] };
+        4'd0:    cabinet_input <= { start_button, fix_joy(joystick1[5:0]) };
+        4'd1:    cabinet_input <= { coin_input,   fix_joy(joystick2[5:0]) };
         4'd2:    cabinet_input <= { 3'b111, mcu_ban, VBL, 
             joystick2[6], joystick1[6], dip_test };
         4'd3:    cabinet_input <= dipsw_a;
