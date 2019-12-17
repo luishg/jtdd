@@ -12,6 +12,7 @@
 
 ../../modules/jtframe/hdl/ram/jtframe_prom.v
 ../../modules/jtframe/hdl/ram/jtframe_ram.v
+../../modules/jtframe/hdl/ram/jtframe_dual_ram.v
 # clocking
 ../../modules/jtframe/hdl/clocking/jtframe_cen48.v
 # SDRAM

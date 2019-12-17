@@ -148,7 +148,7 @@ always @(negedge clk,posedge rst) begin : cpu_clockenable
         last_cs <= 1'b0;
     end else begin
         last_cs <= rom_cs;
-        if( rom_cs && !last_cs ) waitn <= 1'b0;
+        if( rom_cs && !rom_ok ) waitn <= 1'b0;
         else if( rom_ok) waitn <= 1'b1;
     end
 end
@@ -163,12 +163,12 @@ m6801 u_6801(
     .data_in    ( mcu_din       ),
     .data_out   ( mcu_dout      ),
     .halt       ( mcu_halt      ),
-    .irq        ( irq           ),
+    .irq        ( 1'b0          ),
     .nmi        ( nmi           ),
-    .irq_icf    ( irq_icf       ),
-    .irq_ocf    ( irq_ocf       ),
-    .irq_tof    ( irq_tof       ),
-    .irq_sci    ( irq_sci       )
+    .irq_icf    ( 1'b0          ),
+    .irq_ocf    ( 1'b0          ),
+    .irq_tof    ( 1'b0          ),
+    .irq_sci    ( 1'b0          )
 );
 
 jtframe_ram #(.aw(9)) u_shared(

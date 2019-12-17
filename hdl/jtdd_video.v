@@ -22,6 +22,7 @@ module jtdd_video(
     input              clk,
     input              rst,
     input              pxl_cen,
+    input              pxl_cenb,
     input              cen12,
     // CPU bus
     input      [12:0]  cpu_AB,
@@ -114,6 +115,7 @@ jtdd_scroll u_scroll(
     .clk         ( clk              ),
     .rst         ( rst              ),
     .pxl_cen     ( pxl_cen          ),
+    .pxl_cenb    ( pxl_cenb         ),
     .cpu_AB      ( cpu_AB[10:0]     ),
     .scr_cs      ( scr_cs           ),
     .cpu_wrn     ( cpu_wrn          ),

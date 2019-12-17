@@ -25,6 +25,7 @@ module jtdd_scroll(
     input              clk,
     input              rst,
     (*direct_enable*)  input pxl_cen,
+    (*direct_enable*)  input pxl_cenb,
     input      [10:0]  cpu_AB,
     input              scr_cs,
     input              cpu_wrn,
@@ -48,16 +49,16 @@ reg  [ 9:0] ram_addr, scan;
 wire [ 7:0] hi_data, lo_data;
 reg  [ 8:0] hscr, vscr;
 
-always @(*) begin // may consider latching this if glitches appear
+always @(posedge clk) if(pxl_cenb) begin // may consider latching this if glitches appear
     hscr = {1'b0, HPOS} + scrhpos; // hscr[8] is latched in the original
     vscr = {1'b0, VPOS} + scrvpos;
 end
 
 always @(*) begin
-    lo_we     = scr_cs && !cpu_wrn &&  cpu_AB[0];
-    hi_we     = scr_cs && !cpu_wrn && !cpu_AB[0];
+    lo_we     = hscr[0] && scr_cs && !cpu_wrn &&  cpu_AB[0];
+    hi_we     = hscr[0] && scr_cs && !cpu_wrn && !cpu_AB[0];
     scan      = { vscr[8], hscr[8], vscr[7:4], hscr[7:4] };
-    ram_addr  = scr_cs ? cpu_AB[10:1] : scan;
+    ram_addr  = hscr[0] ? cpu_AB[10:1] : scan;
     scr_dout  = !cpu_AB[0] ? hi_data : lo_data;
 end
 
@@ -69,7 +70,7 @@ wire [ 3:0] mux = hflip0 ? shift[15:12] : shift[3:0]; //{shift[2], shift[3], shi
 // pixel output
 always @(posedge clk) if(pxl_cen) begin
     scr_pxl  <= { pal0, mux };
-    case( HPOS[1:0] ) 
+    case( hscr[1:0] ) 
         2'b0: begin
             rom_addr  <= { hi_data[2:0], lo_data, vscr[3:0], hscr[3:2]^{2{hi_data[6]}} };
             pal       <= { hi_data[7], hi_data[5:3] }; // bit 7 affects priority

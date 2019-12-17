@@ -117,6 +117,7 @@ wire rom_ready;
 assign cen_E    = cen3b;
 assign cen_Q    = cen3qb;
 assign pxl_cen  = cen6;
+assign pxl_cenb = cen6b;
 assign pxl2_cen = cen12;
 
 `ifdef MISTER
@@ -277,6 +278,7 @@ jtdd_video u_video(
     .clk          (  clk             ),
     .rst          (  rst             ),
     .pxl_cen      (  pxl_cen         ),
+    .pxl_cenb     (  pxl_cenb        ),
     .cen12        (  cen12           ),
     .cpu_AB       (  cpu_AB          ),
     .pal_cs       (  pal_cs          ),
