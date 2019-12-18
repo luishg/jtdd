@@ -128,11 +128,13 @@ end
 `endif
 
 // Input multiplexer
+wire [7:0] sh2mcu_dout;
+
 always @(*) begin
     case(1'b1)
         default:   mcu_din = rom_data;
         ram_cs:    mcu_din = ram_dout;
-        shared_cs: mcu_din = shared_dout;
+        shared_cs: mcu_din = sh2mcu_dout;
         port_cs:   mcu_din = port_map[A[4:0]];
     endcase
 end
@@ -171,13 +173,28 @@ m6801 u_6801(
     .irq_sci    ( 1'b0          )
 );
 
+/*
 jtframe_ram #(.aw(9)) u_shared(
     .clk    ( clk         ),
-    .cen    ( cen6        ),
     .data   ( shared_data ),
     .addr   ( shared_addr ),
     .we     ( shared_we   ),
     .q      ( shared_dout )
+);
+*/
+jtframe_dual_ram #(.aw(9)) u_shared(
+    .clk0   ( clk         ),
+    .clk1   ( clk         ),
+
+    .data0  ( mcu_dout    ),
+    .addr0  ( A[8:0]      ),
+    .we0    ( ~rnw & shared_cs  ),
+    .q0     ( sh2mcu_dout ),
+    
+    .data1  ( cpu_dout    ),
+    .addr1  ( cpu_AB[8:0] ),
+    .we1    ( ~cpu_wrn & com_cs ),
+    .q1     ( shared_dout )
 );
 
 wire intram_we = ram_cs & ~rnw;
