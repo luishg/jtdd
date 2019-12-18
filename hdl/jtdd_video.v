@@ -68,7 +68,9 @@ module jtdd_video(
     // Pixel output
     output     [3:0]   red,
     output     [3:0]   green,
-    output     [3:0]   blue
+    output     [3:0]   blue,
+    // Debug
+    input      [3:0]   gfx_en
 );
 
 wire [6:0]  char_pxl;  // called mcol in schematics
@@ -177,7 +179,8 @@ jtdd_colmix u_colmix(
     .prom_prio_we( prom_prio_we     ),
     .red         ( red              ),
     .green       ( green            ),
-    .blue        ( blue             )
+    .blue        ( blue             ),
+    .gfx_en      ( gfx_en           )
 );
 
 endmodule

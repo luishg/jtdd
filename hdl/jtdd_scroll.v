@@ -46,7 +46,7 @@ module jtdd_scroll(
 
 reg         hi_we, lo_we;
 reg  [ 9:0] ram_addr, scan;
-wire [ 7:0] hi_data, lo_data;
+wire [ 7:0] hi_data, lo_data, cpu_hi, cpu_lo;
 reg  [ 8:0] hscr, vscr;
 
 always @(posedge clk) if(pxl_cenb) begin // may consider latching this if glitches appear
@@ -55,11 +55,11 @@ always @(posedge clk) if(pxl_cenb) begin // may consider latching this if glitch
 end
 
 always @(*) begin
-    lo_we     = hscr[0] && scr_cs && !cpu_wrn &&  cpu_AB[0];
-    hi_we     = hscr[0] && scr_cs && !cpu_wrn && !cpu_AB[0];
+    lo_we     = cen_Q && scr_cs && !cpu_wrn &&  cpu_AB[0];
+    hi_we     = cen_Q && scr_cs && !cpu_wrn && !cpu_AB[0];
     scan      = { vscr[8], hscr[8], vscr[7:4], hscr[7:4] };
-    ram_addr  = hscr[0] ? cpu_AB[10:1] : scan;
-    scr_dout  = !cpu_AB[0] ? hi_data : lo_data;
+    ram_addr  = /*hscr[0]*/ scr_cs ? cpu_AB[10:1] : scan;
+    scr_dout  = !cpu_AB[0] ? cpu_hi : cpu_lo;
 end
 
 reg  [15:0] shift;
@@ -89,22 +89,32 @@ always @(posedge clk) if(pxl_cen) begin
     endcase
 end
 
-jtframe_ram #(.aw(10),.simfile("scr_hi.bin")) u_ram_high(
-    .clk    ( clk         ),
-    .cen    ( cen_Q       ),
-    .data   ( cpu_dout    ),
-    .addr   ( ram_addr    ),
-    .we     ( hi_we       ),
-    .q      ( hi_data     )
+jtframe_dual_ram #(.aw(10),.simfile("scr_hi.bin")) u_ram_high(
+    .clk0   ( clk         ),
+    .data0  ( cpu_dout    ),
+    .addr0  ( cpu_AB[10:1]),
+    .we0    ( hi_we       ),
+    .q0     ( cpu_hi      ),
+
+    .clk1   ( clk         ),
+    .data1  ( 8'd0        ),
+    .addr1  ( scan        ),
+    .we1    ( 1'b0        ),
+    .q1     ( hi_data     )
 );
 
-jtframe_ram #(.aw(10),.simfile("scr_lo.bin")) u_ram_low(
-    .clk    ( clk         ),
-    .cen    ( cen_Q       ),
-    .data   ( cpu_dout    ),
-    .addr   ( ram_addr    ),
-    .we     ( lo_we       ),
-    .q      ( lo_data     )
+jtframe_dual_ram #(.aw(10),.simfile("scr_lo.bin")) u_ram_low(
+    .clk0   ( clk         ),
+    .data0  ( cpu_dout    ),
+    .addr0  ( cpu_AB[10:1]),
+    .we0    ( lo_we       ),
+    .q0     ( cpu_lo      ),
+
+    .clk1   ( clk         ),
+    .data1  ( 8'd0        ),
+    .addr1  ( scan        ),
+    .we1    ( 1'b0        ),
+    .q1     ( lo_data     )
 );
 
 endmodule

@@ -43,14 +43,17 @@ module jtdd_char(
 
 reg         hi_we, lo_we;
 reg  [11:0] ram_addr, scan;
-wire [ 7:0] hi_data, lo_data;
+wire [ 7:0] hi_data, lo_data, cpu_hi, cpu_lo;
+
+reg q2;
+always @(posedge clk) q2<=cen_Q;
 
 always @(*) begin
-    lo_we     = HPOS[0] && char_cs && !cpu_wrn &&  cpu_AB[0];
-    hi_we     = HPOS[0] && char_cs && !cpu_wrn && !cpu_AB[0];
+    lo_we     = q2 && char_cs && !cpu_wrn &&  cpu_AB[0];
+    hi_we     = q2 && char_cs && !cpu_wrn && !cpu_AB[0];
     scan      = { 2'b11, VPOS[7:3], HPOS[7:3] };
-    ram_addr  = HPOS[0] ? cpu_AB[12:1] : scan;
-    char_dout = !cpu_AB[0] ? hi_data : lo_data;
+    // ram_addr  = HPOS[0] ? cpu_AB[12:1] : scan;
+    char_dout = !cpu_AB[0] ? cpu_hi : cpu_lo;
 end
 
 reg  [7:0] shift;
@@ -82,22 +85,32 @@ always @(posedge clk) if(pxl_cen) begin
     endcase
 end
 
-jtframe_ram #(.aw(12),.simfile("char_hi.bin")) u_ram_high(
-    .clk    ( clk         ),
-    .cen    ( cen_Q       ),
-    .data   ( cpu_dout    ),
-    .addr   ( ram_addr    ),
-    .we     ( hi_we       ),
-    .q      ( hi_data     )
+jtframe_dual_ram #(.aw(12),.simfile("char_hi.bin")) u_ram_high(
+    .clk0   ( clk         ),
+    .data0  ( cpu_dout    ),
+    .addr0  ( cpu_AB[12:1]),
+    .we0    ( hi_we       ),
+    .q0     ( cpu_hi      ),
+
+    .clk1   ( clk         ),
+    .data1  ( 8'd0        ),
+    .addr1  ( scan        ),
+    .we1    ( 1'b0        ),
+    .q1     ( hi_data     )
 );
 
-jtframe_ram #(.aw(12),.simfile("char_lo.bin")) u_ram_low(
-    .clk    ( clk         ),
-    .cen    ( cen_Q       ),
-    .data   ( cpu_dout    ),
-    .addr   ( ram_addr    ),
-    .we     ( lo_we       ),
-    .q      ( lo_data     )
+jtframe_dual_ram #(.aw(12),.simfile("char_lo.bin")) u_ram_low(
+    .clk0   ( clk         ),
+    .data0  ( cpu_dout    ),
+    .addr0  ( cpu_AB[12:1]),
+    .we0    ( lo_we       ),
+    .q0     ( cpu_lo      ),
+
+    .clk1   ( clk         ),
+    .data1  ( 8'd0        ),
+    .addr1  ( scan        ),
+    .we1    ( 1'b0        ),
+    .q1     ( lo_data     )
 );
 
 endmodule

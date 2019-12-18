@@ -185,7 +185,7 @@ function [5:0] fix_joy;
 endfunction
 
 always @(posedge clk) begin
-    case( cpu_AB[3:0])
+    case( A[3:0])
         4'd0:    cabinet_input <= { start_button, fix_joy(joystick1[5:0]) };
         4'd1:    cabinet_input <= { coin_input,   fix_joy(joystick2[5:0]) };
         4'd2:    cabinet_input <= { 3'b111, mcu_ban, VBL, 

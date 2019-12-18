@@ -44,7 +44,9 @@ module jtdd_colmix(
     // Pixel output
     output reg [3:0]   red,
     output reg [3:0]   green,
-    output reg [3:0]   blue
+    output reg [3:0]   blue,
+    // Debug
+    input      [3:0] gfx_en
 );
 
 parameter SIM_PRIO="../../rom/21j-k-0";
@@ -54,9 +56,10 @@ wire [3:0] pal_b;
 reg        pal_gr_we, pal_b_we;
 reg  [8:0] pal_addr;
 wire [1:0] prio;
-wire       obj_blank  = ~|obj_pxl[3:0];
-wire       char_blank = ~|char_pxl[3:0];
-wire [7:0] seladdr = { scr_pxl[7], obj_pxl[7], obj_blank, char_blank, scr_pxl[3:0] };
+wire       obj_blank  = ~gfx_en[2] | ~|obj_pxl[3:0];
+wire       char_blank = ~gfx_en[0] | ~|char_pxl[3:0];
+wire [7:0] scr2_pxl   = scr_pxl & {8{gfx_en[1]}}; // gated by global enable signal
+wire [7:0] seladdr = { scr2_pxl[7], obj_pxl[7], obj_blank, char_blank, scr2_pxl[3:0] };
 
 reg [7:0] pal_din;
 
@@ -71,7 +74,7 @@ always @(posedge clk) begin
         case( prio )
             default: pal_addr <= { 2'b00, char_pxl };
             2'd2:    pal_addr <= { 2'b01, obj_pxl[6:0] };
-            2'd3:    pal_addr <= { 2'b10, scr_pxl[6:0] };
+            2'd3:    pal_addr <= { 2'b10, scr2_pxl[6:0] };
         endcase
 
 end

@@ -321,7 +321,9 @@ jtdd_video u_video(
     // Pixel output
     .red          (  red             ),
     .green        (  green           ),
-    .blue         (  blue            )
+    .blue         (  blue            ),
+    // Debug
+    .gfx_en       (  gfx_en          )
 );
 
 // Same as locations inside JTDD.rom file
