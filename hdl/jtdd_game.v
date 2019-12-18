@@ -367,6 +367,7 @@ jtframe_rom #(
 ) u_rom (
     .rst         ( rst           ),
     .clk         ( clk           ),
+    .vblank      ( VBL           ),
 
     .slot0_cs    ( ~VBL          ),
     .slot1_cs    ( ~VBL          ),
@@ -376,7 +377,7 @@ jtframe_rom #(
     .slot5_cs    ( mcu_cs        ),
     .slot6_cs    ( 1'b0          ),
     .slot7_cs    ( main_cs       ),
-    .slot8_cs    ( 1'b1          ),    
+    .slot8_cs    ( 1'b1          ), // objects   
 
     .slot0_ok    ( char_ok       ),
     .slot1_ok    ( scr_ok        ),
