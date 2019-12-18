@@ -17,7 +17,6 @@
 ../../modules/jtframe/hdl/clocking/jtframe_cen48.v
 # SDRAM
 ../../modules/jtframe/hdl/sdram/jtframe_rom.v
-../../modules/jtframe/hdl/sdram/jtframe_romflex.v
 ../../modules/jtframe/hdl/sdram/jtframe_romrq.v
 # Other
 ../../modules/jtframe/hdl/jtframe_ff.v

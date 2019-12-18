@@ -25,7 +25,7 @@ module jtdd_char(
     input              clk,
     input              rst,
     (*direct_enable*)  input pxl_cen,
-    input      [12:0]  cpu_AB,
+    input      [10:0]  cpu_AB,
     input              char_cs,
     input              cpu_wrn,
     input      [ 7:0]  cpu_dout,
@@ -42,7 +42,7 @@ module jtdd_char(
 );
 
 reg         hi_we, lo_we;
-reg  [11:0] ram_addr, scan;
+reg  [ 9:0] scan;
 wire [ 7:0] hi_data, lo_data, cpu_hi, cpu_lo;
 
 reg q2;
@@ -51,7 +51,7 @@ always @(posedge clk) q2<=cen_Q;
 always @(*) begin
     lo_we     = q2 && char_cs && !cpu_wrn &&  cpu_AB[0];
     hi_we     = q2 && char_cs && !cpu_wrn && !cpu_AB[0];
-    scan      = { 2'b11, VPOS[7:3], HPOS[7:3] };
+    scan      = { VPOS[7:3], HPOS[7:3] };
     // ram_addr  = HPOS[0] ? cpu_AB[12:1] : scan;
     char_dout = !cpu_AB[0] ? cpu_hi : cpu_lo;
 end
@@ -62,9 +62,9 @@ wire [3:0] mux = flip ? shift[7:4] : shift[3:0];
 
 `ifdef SIMULATION
 reg char_error;
-`define CHAR_ERROR char_error<=~rom_ok;
+`define ROM_ERROR char_error<=~rom_ok;
 `else
-`define CHAR_ERROR 
+`define ROM_ERROR 
 `endif
 
 always @(posedge clk) if(pxl_cen) begin
@@ -77,7 +77,7 @@ always @(posedge clk) if(pxl_cen) begin
             shift     <= { 
                 rom_data[7], rom_data[5], rom_data[3], rom_data[1],
                 rom_data[6], rom_data[4], rom_data[2], rom_data[0] };
-            `CHAR_ERROR
+            `ROM_ERROR
         end
         1'b1: begin
             shift <= flip ? (shift<<4) : (shift >> 4);
@@ -85,10 +85,10 @@ always @(posedge clk) if(pxl_cen) begin
     endcase
 end
 
-jtframe_dual_ram #(.aw(12),.simfile("char_hi.bin")) u_ram_high(
+jtframe_dual_ram #(.aw(10),.simfile("char_hi.bin")) u_ram_high(
     .clk0   ( clk         ),
     .data0  ( cpu_dout    ),
-    .addr0  ( cpu_AB[12:1]),
+    .addr0  ( cpu_AB[10:1]),
     .we0    ( hi_we       ),
     .q0     ( cpu_hi      ),
 
@@ -99,10 +99,10 @@ jtframe_dual_ram #(.aw(12),.simfile("char_hi.bin")) u_ram_high(
     .q1     ( hi_data     )
 );
 
-jtframe_dual_ram #(.aw(12),.simfile("char_lo.bin")) u_ram_low(
+jtframe_dual_ram #(.aw(10),.simfile("char_lo.bin")) u_ram_low(
     .clk0   ( clk         ),
     .data0  ( cpu_dout    ),
-    .addr0  ( cpu_AB[12:1]),
+    .addr0  ( cpu_AB[10:1]),
     .we0    ( lo_we       ),
     .q0     ( cpu_lo      ),
 

@@ -99,6 +99,7 @@ wire [3:0] scr_msb = ioctl_addr[19:16]-4'd6;
 wire [4:0] obj_msb = ioctl_addr[20:16]-5'hA;
 wire       scr_top = scr_msb[1];
 wire       obj_top = obj_msb[2];
+wire [1:0] mask8   = {~ioctl_addr[0], ioctl_addr[0]};
 
 always @(posedge clk) begin
     if( set_done ) set_strobe <= 1'b0;
@@ -108,13 +109,13 @@ always @(posedge clk) begin
         `CLR_ALL
         if(ioctl_addr[21:16] < ADPCM_1[21:16]) begin // Main/Sound ROM
             prog_addr <= {1'b0, ioctl_addr[21:1]};
-            prog_mask <= {ioctl_addr[0], ~ioctl_addr[0]};
+            prog_mask <= mask8;
             `INFO_MAIN
             `INFO_SND
         end
         else if(ioctl_addr[21:16] < CHAR_ADDR[21:16]) begin // ADPCM
             prog_addr <= {1'b0, ioctl_addr[21:1]};
-            prog_mask <= {~ioctl_addr[0], ioctl_addr[0]};
+            prog_mask <= mask8;
             `INFO_CHAR
         end
         else if(ioctl_addr[21:16] < SCRZW_ADDR[21:16]) begin // CHAR ROM
@@ -136,7 +137,7 @@ always @(posedge clk) begin
         end
         else if(ioctl_addr[21:12] < PROM_ADDR[21:12] ) begin // MCU
             prog_addr <= { 6'hC,3'b0, ioctl_addr[13:1] };
-            prog_mask <= { ioctl_addr[0], ~ioctl_addr[0]};
+            prog_mask <= mask8;
             `INFO_MCU
         end
         else begin // PROMs

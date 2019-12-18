@@ -50,7 +50,7 @@ module jtdd_main(
     // Characters
     input       [7:0]  char_dout,
     output      [7:0]  cpu_dout,
-    output             char_cs,
+    output  reg        char_cs,
     // Object
     input       [7:0]  obj_dout,
     output  reg        obj_cs,
@@ -80,6 +80,7 @@ module jtdd_main(
 );
 
 wire [15:0] A;
+wire [ 7:0] ram_dout;
 wire nRESET;
 reg io_cs, ram_cs, misc_cs, banked_cs;
 
@@ -98,13 +99,12 @@ wire irq_clr     = w3805;
 wire sndlatch_cs = w3806;
 assign mcu_nmi_set = w3807;
 
-assign char_cs   = ram_cs; // shared
-
 always @(*) begin
     scr_cs      = 1'b0;
     io_cs       = 1'b0;
     pal_cs      = 1'b0;
     ram_cs      = 1'b0;
+    char_cs     = 1'b0;
     rom_cs      = 1'b0;
     obj_cs      = 1'b0;
     misc_cs     = 1'b0;
@@ -119,11 +119,12 @@ always @(*) begin
     w3807       = 1'b0;
     if( A[15:14]==2'b00 ) begin
         case(A[13:11])
-            3'd0, 3'd1, 3'd3: ram_cs = 1'b1;
-            3'd2: pal_cs = 1'b1;
-            3'd4: com_cs = 1'b1;
-            3'd5: obj_cs = 1'b1;
-            3'd6: scr_cs = 1'b1;
+            3'd0, 3'd1: ram_cs = 1'b1;
+            3'd2: pal_cs  = 1'b1;
+            3'd3: char_cs = 1'b1;
+            3'd4: com_cs  = 1'b1;
+            3'd5: obj_cs  = 1'b1;
+            3'd6: scr_cs  = 1'b1;
             3'd7: begin
                 io_cs  = RnW;
                 if(A[3] && !RnW) begin 
@@ -202,7 +203,8 @@ reg [7:0] cpu_din;
 
 always @(*) begin
     case( 1'b1 )
-        ram_cs    : cpu_din = char_dout;
+        ram_cs    : cpu_din = ram_dout;
+        char_cs   : cpu_din = char_dout;
         scr_cs    : cpu_din = scr_dout;
         rom_cs    : cpu_din = rom_data;
         banked_cs : cpu_din = rom_data;
@@ -213,6 +215,23 @@ always @(*) begin
         default   : cpu_din = 8'hff;
     endcase
 end
+
+// In the original PCB, the CPU RAM is shared with the
+// character generator. Time multiplexing avoids the two to clash
+// There is 1/4 of that memory unaccessible by the CPU
+// I have broken up the memory in order to avoid that waste
+// and ease design compilation.
+// RAM which is not shared by the characters
+wire ram_we = ram_cs & ~RnW;
+
+jtframe_ram #(.aw(12)) u_ram(
+    .clk    ( clk         ),
+    .cen    ( cen_Q       ),
+    .data   ( cpu_dout    ),
+    .addr   ( A[11:0]     ),
+    .we     ( ram_we      ),
+    .q      ( ram_dout    )
+);
 
 // banked ROM address
 always @(*) begin

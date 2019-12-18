@@ -98,7 +98,7 @@ jtdd_char u_char(
     .clk         ( clk              ),
     .rst         ( rst              ),
     .pxl_cen     ( pxl_cen          ),
-    .cpu_AB      ( cpu_AB           ),
+    .cpu_AB      ( cpu_AB[10:0]     ),
     .char_cs     ( char_cs          ),
     .cpu_wrn     ( cpu_wrn          ),
     .cpu_dout    ( cpu_dout         ),

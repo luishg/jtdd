@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-module jtgng_pll0(
+module jtframe_pll0(
     input    inclk0,
     output   reg c1,      // 12
     output   reg c2,      // 96
@@ -39,7 +39,7 @@ assign #1 c2 = c1;
 endmodule // jtgng_pll0
 
 
-module jtgng_pll1 (
+module jtframe_pll1 (
     input inclk0,
     output reg c0     // 25
 );

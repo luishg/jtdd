@@ -11,3 +11,7 @@ else
         -o sim \
         && sim -lxt
 fi
+
+cp sdram.hex bueno.hex
+cp sdram.hex nolegal.hex
+patch nolegal.hex nolegal.patch

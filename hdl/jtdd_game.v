@@ -337,59 +337,67 @@ localparam CHAR_ADDR   = 22'h5_0000;
 // reallocated:
 localparam SCR_ADDR  = 22'h4_0000;
 localparam OBJ_ADDR  = 22'h8_0000;
+localparam MCU_ADDR  = 22'hC_0000;
 
 
 jtframe_rom #(
-    .char_aw    ( 15              ),
-    .char_dw    ( 8               ),
-    .main_aw    ( 18              ),
-    .obj_aw     ( 18              ),
-    .scr1_aw    ( 17              ),
-    .scr2_aw    ( 15              ),
-    .snd2_aw    ( 14              ), // MCU
-    // MAP slots used for ADPCM
-    .snd_offset ( SND_ADDR>>1     ),
-    .snd2_offset( 22'hC_0000      ), // MCU
-    .char_offset( CHAR_ADDR>>1    ),
-    .scr1_offset( SCR_ADDR        ),
-    .scr2_offset(  ),
-    .obj_offset ( OBJ_ADDR        )
+    .SLOT0_AW    ( 15              ),   // Char
+    .SLOT0_DW    ( 8               ),
+    .SLOT0_OFFSET( CHAR_ADDR>>1    ),
+
+    .SLOT1_AW    ( 17              ),   // Scroll
+    .SLOT1_DW    ( 16              ),
+    .SLOT1_OFFSET( SCR_ADDR        ),
+
+    .SLOT5_AW    ( 14              ),   // MCU
+    .SLOT5_DW    (  8              ),
+    .SLOT5_OFFSET( MCU_ADDR        ),
+    
+    .SLOT7_AW    ( 18              ),
+    .SLOT7_DW    (  8              ),
+    .SLOT7_OFFSET(  0              ),   // Main
+
+    .SLOT8_AW    ( 18              ),   // Objects
+    .SLOT8_DW    ( 16              ),
+    .SLOT8_OFFSET( OBJ_ADDR        ),
+
+    .SLOT6_AW    ( 15              ),   // Sound
+    .SLOT6_DW    (  8              ),
+    .SLOT6_OFFSET( SND_ADDR>>1     )
 ) u_rom (
     .rst         ( rst           ),
     .clk         ( clk           ),
-    .LVBL        ( ~VBL          ),
-    .pause       ( ~dip_pause    ),
 
-    .main_cs     ( main_cs       ),
-    .snd_cs      ( 1'b0          ),
-    .snd2_cs     ( mcu_cs        ),
-    .main_ok     ( main_ok       ),
-    .snd_ok      (               ),
-    .snd2_ok     ( mcu_ok        ),
-    .scr1_ok     ( scr_ok        ),
-    .scr2_ok     (               ),
-    .char_ok     ( char_ok       ),
-    .obj_ok      ( obj_ok        ),
+    .slot0_cs    ( ~VBL          ),
+    .slot1_cs    ( ~VBL          ),
+    .slot2_cs    ( 1'b0          ), // unused
+    .slot3_cs    ( 1'b0          ), // unused
+    .slot4_cs    ( 1'b0          ), // unused
+    .slot5_cs    ( mcu_cs        ),
+    .slot6_cs    ( 1'b0          ),
+    .slot7_cs    ( main_cs       ),
+    .slot8_cs    ( 1'b1          ),    
 
-    .char_addr   ( char_addr     ),
-    .main_addr   ( main_addr     ),
-    .snd_addr    ( 15'd0         ),
-    .snd2_addr   ( mcu_addr      ),
-    .obj_addr    ( obj_addr      ),
-    .scr1_addr   ( scr_addr      ),
-    .scr2_addr   ( 15'd0         ),
-    .map1_addr   ( 14'd0         ),
-    .map2_addr   ( 14'd0         ),
+    .slot0_ok    ( char_ok       ),
+    .slot1_ok    ( scr_ok        ),
+    .slot5_ok    ( mcu_ok        ),
+    .slot6_ok    (               ),
+    .slot7_ok    ( main_ok       ),
+    .slot8_ok    ( obj_ok        ),
 
-    .char_dout   ( char_data     ),
-    .main_dout   ( main_data     ),
-    .snd_dout    (               ),
-    .snd2_dout   ( mcu_data      ),
-    .obj_dout    ( obj_data      ),
-    .map1_dout   (               ),
-    .map2_dout   (               ),
-    .scr1_dout   ( scr_data      ),
-    .scr2_dout   (               ),
+    .slot0_addr  ( char_addr     ),
+    .slot1_addr  ( scr_addr      ),
+    .slot5_addr  ( mcu_addr      ),
+    .slot6_addr  ( 15'd0         ),
+    .slot7_addr  ( main_addr     ),
+    .slot8_addr  ( obj_addr      ),
+
+    .slot0_dout  ( char_data     ),
+    .slot1_dout  ( scr_data      ),
+    .slot5_dout  ( mcu_data      ),
+    .slot6_dout  (               ),
+    .slot7_dout  ( main_data     ),
+    .slot8_dout  ( obj_data      ),
 
     .ready       ( rom_ready     ),
     // SDRAM interface
