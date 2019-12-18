@@ -111,7 +111,7 @@ wire       [ 8:0]  scrhpos, scrvpos;
 assign dwnld_busy = downloading;
 
 wire cen12, cen8, cen6, cen3, cen3q, cen1p5, cen12b, cen6b, cen3b, cen3qb;
-wire cpu_cen;
+wire cpu_cen, turbo;
 wire rom_ready;
 
 assign cen_E    = cen3b;
@@ -176,6 +176,7 @@ jtdd_dip u_dip(
     .dip_pause  (  dip_pause    ),
     .dip_test   (  dip_test     ),
     .dip_flip   (  dip_flip     ),
+    .turbo      (  turbo        ),
     .dipsw_a    (  dipsw_a      ),
     .dipsw_b    (  dipsw_b      )
 );

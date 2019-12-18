@@ -7,5 +7,6 @@
     "OI,Demo music,OFF,ON;", \
     "OJK,Bonus Life,20k,40k,30k/60k,40k/80k;", \
     "OLM,Lives,2,3,4,infinite;",
+    // "ON,Turbo,Off,On;",
 `define CORE_KEYMAP \
     "J,Punch,Jump,Kick,1P Start,2P Start,Coin,Credits;",
