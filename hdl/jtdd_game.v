@@ -83,15 +83,15 @@ wire       [ 7:0]  char_dout, scr_dout, obj_dout, pal_dout;
 wire               VBL, HBL, IMS;
 wire               flip;
 // ROM access
-wire       [14:0]  char_addr;
+wire       [14:0]  char_addr, snd_addr;
 wire       [ 7:0]  char_data;
 wire       [16:0]  scr_addr;
 wire       [17:0]  obj_addr;
 wire       [15:0]  scr_data, obj_data;
-wire               char_ok, scr_ok, obj_ok, main_ok;
+wire               char_ok, scr_ok, obj_ok, main_ok, snd_ok;
 wire       [17:0]  main_addr;
-wire               main_cs;
-wire       [ 7:0]  main_data;
+wire               main_cs, snd_cs;
+wire       [ 7:0]  main_data, snd_data;
 wire       [13:0]  mcu_addr;
 wire       [ 7:0]  mcu_data;
 wire               mcu_cs, mcu_ok;
@@ -275,6 +275,26 @@ jtframe_ram #(.aw(9)) u_shared(
 );
 `endif
 
+jtdd_sound u_sound(
+    .clk        ( clk       ),
+    .rst        ( rst       ),
+    .cen_E      ( cen6      ),
+    .cen_Q      ( cen6b     ),
+    // communication with main CPU
+    .snd_rstb   ( snd_rstb  ),
+    .snd_irq    ( snd_irq   ),
+    .snd_latch  ( snd_latch ),
+    // ROM
+    .rom_addr   ( snd_addr  ),
+    .rom_cs     ( snd_cs    ),
+    .rom_data   ( snd_data  ),
+    .rom_ok     ( snd_ok    ),
+    // Sound output
+    .left       ( snd_left  ),
+    .right      ( snd_right ),
+    .sample     ( sample    )    
+);
+
 jtdd_video u_video(
     .clk          (  clk             ),
     .rst          (  rst             ),
@@ -376,28 +396,28 @@ jtframe_rom #(
     .slot3_cs    ( 1'b0          ), // unused
     .slot4_cs    ( 1'b0          ), // unused
     .slot5_cs    ( mcu_cs        ),
-    .slot6_cs    ( 1'b0          ),
+    .slot6_cs    ( snd_cs        ),
     .slot7_cs    ( main_cs       ),
     .slot8_cs    ( 1'b1          ), // objects   
 
     .slot0_ok    ( char_ok       ),
     .slot1_ok    ( scr_ok        ),
     .slot5_ok    ( mcu_ok        ),
-    .slot6_ok    (               ),
+    .slot6_ok    ( snd_ok        ),
     .slot7_ok    ( main_ok       ),
     .slot8_ok    ( obj_ok        ),
 
     .slot0_addr  ( char_addr     ),
     .slot1_addr  ( scr_addr      ),
     .slot5_addr  ( mcu_addr      ),
-    .slot6_addr  ( 15'd0         ),
+    .slot6_addr  ( snd_addr      ),
     .slot7_addr  ( main_addr     ),
     .slot8_addr  ( obj_addr      ),
 
     .slot0_dout  ( char_data     ),
     .slot1_dout  ( scr_data      ),
     .slot5_dout  ( mcu_data      ),
-    .slot6_dout  (               ),
+    .slot6_dout  ( snd_data      ),
     .slot7_dout  ( main_data     ),
     .slot8_dout  ( obj_data      ),
 

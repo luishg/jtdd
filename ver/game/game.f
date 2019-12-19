@@ -9,6 +9,7 @@
 ../../hdl/jtdd_obj.v
 ../../hdl/jtdd_colmix.v
 ../../hdl/jtdd_prom_we.v
+../../hdl/jtdd_sound.v
 
 ../../modules/jtframe/hdl/ram/jtframe_prom.v
 ../../modules/jtframe/hdl/ram/jtframe_ram.v
