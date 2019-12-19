@@ -65,12 +65,12 @@ reg ram_cs, latch_cs, ad_cs, fm_cs, ad0_cs, ad1_cs;
 
 assign rom_addr = A[14:0];
 
-wire signed [15:0] ext0 = { adpcm0_snd, 4'b0 };
-wire signed [15:0] ext1 = { adpcm1_snd, 4'b0 };
+wire signed [15:0] ext0 = { {1{adpcm0_snd[11]}}, adpcm0_snd, 3'b0 };
+wire signed [15:0] ext1 = { {1{adpcm1_snd[11]}}, adpcm1_snd, 3'b0 };
 
 always @(posedge clk) begin
-    left  <= fm_left + ext0 + ext1;
-    right <= fm_right+ ext0 + ext1;
+    left  <= (fm_left + ext0 + ext1)<<<1;
+    right <= (fm_right+ ext0 + ext1)<<<1;
 end
 
 always @(*) begin

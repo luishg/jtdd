@@ -49,7 +49,7 @@ reg       ad_rst;
 wire      sample;
 wire      over = addr0 == addr1;
 
-always @(posedge clk, rst) begin
+always @(posedge clk, posedge rst) begin
     if(rst) begin
         addr0  <= 8'd0;
         addr1  <= 8'd0;
@@ -82,7 +82,7 @@ always @(posedge clk) begin
     rom_cs   <= ~ad_rst;
 end
 
-wire [3:0] din = cnt[0] ? rom_data[7:4] : rom_data[3:0];
+wire [3:0] din = !cnt[0] ? rom_data[7:4] : rom_data[3:0];
 
 jt5205 u_decod(
     .rst    ( ad_rst    ),

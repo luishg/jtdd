@@ -1,6 +1,5 @@
 set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../hdl/jtdd_game.v    ]
 set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../hdl/jtdd_main.v    ]
-set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../hdl/jtdd_sound.v   ]
 set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../hdl/jtdd_mcu.v     ]
 set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../hdl/jtdd_colmix.v  ]
 set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../hdl/jtdd_dip.v     ]
@@ -10,7 +9,8 @@ set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../hdl/
 set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../hdl/jtdd_obj.v     ]
 set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../hdl/jtdd_scroll.v  ]
 set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../hdl/jtdd_timing.v  ]
-# set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../hdl/jtdd_sound.v   ]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../hdl/jtdd_sound.v   ]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../hdl/jtdd_adpcm.v   ]
 
 set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../modules/jtframe/hdl/clocking/jtframe_cen48.v       ]
 set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../modules/jtframe/hdl/jtframe_sh.v ]
@@ -27,7 +27,12 @@ set_global_assignment -name QIP_FILE     [file join $::quartus(qip_path) ../modu
 
 # M6809
 set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../modules/jtframe/hdl/cpu/mc6809i.v     ]
+
 # JT51 (YM2151)
 set_global_assignment -name QIP_FILE [file join $::quartus(qip_path) ../modules/jt51/hdl/jt51.qip   ]
+
+# MSM5205
+set_global_assignment -name QIP_FILE [file join $::quartus(qip_path) ../modules/jt5205/hdl/jt5205.qip   ]
+
 # MCU
 set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) ../modules/jtframe/hdl/cpu/6801_core.sv   ]
