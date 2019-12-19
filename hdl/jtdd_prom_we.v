@@ -43,8 +43,8 @@ localparam PW=1;
 localparam BANK_ADDR   = 22'h00000;
 localparam MAIN_ADDR   = 22'h20000;
 localparam SND_ADDR    = 22'h28000;
-localparam ADPCM_1     = 22'h30000;
-localparam ADPCM_2     = 22'h40000;
+localparam ADPCM_0     = 22'h30000;
+localparam ADPCM_1     = 22'h40000;
 localparam CHAR_ADDR   = 22'h50000;
 // Scroll
 localparam SCRZW_ADDR  = 22'h60000;
@@ -107,7 +107,7 @@ always @(posedge clk) begin
         prog_we   <= 1'b1;
         prog_data <= ioctl_data;
         `CLR_ALL
-        if(ioctl_addr[21:16] < ADPCM_1[21:16]) begin // Main/Sound ROM
+        if(ioctl_addr[21:16] < ADPCM_0[21:16]) begin // Main/Sound ROM
             prog_addr <= {1'b0, ioctl_addr[21:1]};
             prog_mask <= mask8;
             `INFO_MAIN
@@ -116,7 +116,7 @@ always @(posedge clk) begin
         else if(ioctl_addr[21:16] < CHAR_ADDR[21:16]) begin // ADPCM
             prog_addr <= {1'b0, ioctl_addr[21:1]};
             prog_mask <= mask8;
-            `INFO_CHAR
+            `INFO_ADPCM
         end
         else if(ioctl_addr[21:16] < SCRZW_ADDR[21:16]) begin // CHAR ROM
             prog_addr <= {1'b0, ioctl_addr[21:5], ioctl_addr[2:0], ioctl_addr[4]};

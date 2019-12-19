@@ -33,7 +33,7 @@ module jtdd_dip(
 
 wire          dip_upright = 1'b0;
 wire [1:0]    dip_level   = status[17:16];
-wire          dip_demosnd = status[18];
+wire          dip_demosnd = 1'b1; //status[18];
 wire [1:0]    dip_bonus   = status[20:19];
 wire [1:0]    dip_lives   = status[22:21];
 assign turbo              = status[23];

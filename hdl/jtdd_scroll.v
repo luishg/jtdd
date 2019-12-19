@@ -14,7 +14,7 @@
 
     Author: Jose Tejada Gomez. Twitter: @topapate
     Version: 1.0
-    Date: 2-12-2017 */
+    Date: 2-12-2019 */
 
 // Schematics 8/10 and 9/10 BACK
 // Scroll layer
@@ -64,9 +64,9 @@ end
 
 `ifdef SIMULATION
 reg scr_error;
-`define ROM_ERROR scr_error<=~rom_ok;
+`define SCR_ERROR scr_error<=~rom_ok;
 `else
-`define ROM_ERROR 
+`define SCR_ERROR 
 `endif
 
 reg  [15:0] shift;
@@ -89,7 +89,7 @@ always @(posedge clk) if(pxl_cen) begin
                 rom_data[14], rom_data[10], rom_data[6], rom_data[2],
                 rom_data[13], rom_data[ 9], rom_data[5], rom_data[1],
                 rom_data[12], rom_data[ 8], rom_data[4], rom_data[0] };
-            `ROM_ERROR
+            `SCR_ERROR
         end
         default: begin
             shift    <= hflip ? (shift<<4) : (shift>>4);

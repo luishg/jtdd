@@ -14,7 +14,7 @@
 
     Author: Jose Tejada Gomez. Twitter: @topapate
     Version: 1.0
-    Date: 2-12-2017 */
+    Date: 2-12-2019 */
 
 // Clocks are derived from H counter on the original PCB
 // Yet, that doesn't seem to be important and it only
@@ -25,34 +25,53 @@
 `timescale 1ns/1ps
 
 module jtdd_sound(
-    input               clk,
-    input               rst,
+    input           clk,
+    input           rst,
     (* direct_enable *) input cen_E,
     (* direct_enable *) input cen_Q,
+    input           H8,
     // communication with main CPU
-    input               snd_rstb,
-    input               snd_irq,
-    input      [7:0]    snd_latch,
+    input           snd_rstb,
+    input           snd_irq,
+    input   [ 7:0]  snd_latch,
     // ROM
     output  [14:0]  rom_addr,
     output  reg     rom_cs,
     input   [ 7:0]  rom_data,
     input           rom_ok,
 
+    output  [15:0]  adpcm0_addr,
+    output          adpcm0_cs,
+    input   [ 7:0]  adpcm0_data,
+    input           adpcm0_ok,
+
+    output  [15:0]  adpcm1_addr,
+    output          adpcm1_cs,
+    input   [ 7:0]  adpcm1_data,
+    input           adpcm1_ok,
     // Sound output
-    output  signed [15:0] left,
-    output  signed [15:0] right,
-    output                sample    
+    output reg signed [15:0] left,
+    output reg signed [15:0] right,
+    output                   sample    
 );
 
 wire [ 7:0] cpu_dout, ram_dout, fm_dout;
 wire [15:0] A;
 reg  [ 7:0] cpu_din;
 wire        RnW, firq_n, irq_n;
-
-reg ram_cs, latch_cs, ad_cs, fm_cs;
+wire signed [11:0] adpcm0_snd, adpcm1_snd;
+wire signed [15:0] fm_left, fm_right;
+reg ram_cs, latch_cs, ad_cs, fm_cs, ad0_cs, ad1_cs;
 
 assign rom_addr = A[14:0];
+
+wire signed [15:0] ext0 = { adpcm0_snd, 4'b0 };
+wire signed [15:0] ext1 = { adpcm1_snd, 4'b0 };
+
+always @(posedge clk) begin
+    left  <= fm_left + ext0 + ext1;
+    right <= fm_right+ ext0 + ext1;
+end
 
 always @(*) begin
     rom_cs   = A[15];
@@ -60,12 +79,17 @@ always @(*) begin
     latch_cs = 1'b0;
     ad_cs    = 1'b0;
     fm_cs    = 1'b0;
+    ad0_cs   = 1'b0;
+    ad1_cs   = 1'b0;
     if(!A[15]) case(A[14:11])
         4'd0: ram_cs   = 1'b1;
         4'd2: latch_cs = 1'b1;
         4'd3: ad_cs    = 1'b1;
         4'd5: fm_cs    = 1'b1;
-        // 4'd7:
+        4'd7: if(!RnW) begin
+            ad0_cs = ~A[0];
+            ad1_cs =  A[0];
+        end
     endcase
 end
 
@@ -75,16 +99,22 @@ always @(*) begin
         ram_cs:   cpu_din = ram_dout;
         latch_cs: cpu_din = snd_latch;
         fm_cs:    cpu_din = fm_dout;
-        ad_cs:    cpu_din = 8'hff;
+        ad_cs:    cpu_din = {~6'h0, adpcm1_cs, adpcm0_cs};
     endcase
 end
 
-reg E,Q;
+reg E,Q, cen_oki, last_H8, H8_edge;
 assign cpu_cen = Q;
+
+always @(posedge clk) begin
+    last_H8 <= H8;
+    H8_edge <= H8 && !last_H8;
+end
 
 always @(negedge clk) begin
     E <= cen_E & (~rom_cs | rom_ok | ~snd_rstb);
     Q <= cen_Q & (~rom_cs | rom_ok | ~snd_rstb);
+    cen_oki <= H8_edge;
 end
 
 wire ram_we = ram_cs & ~RnW;
@@ -158,12 +188,54 @@ jt51 u_jt51(
     .left       (           ),
     .right      (           ),
     // Full resolution output
-    .xleft      ( left      ),
-    .xright     ( right     ),
+    .xleft      ( fm_left   ),
+    .xright     ( fm_right  ),
     // unsigned outputs for sigma delta converters, full resolution
     .dacleft    (           ),
     .dacright   (           )
 );
 
+jtdd_adpcm u_adpcm0(
+    .clk        ( clk           ),
+    .rst        ( rst           ),
+    .cpu_cen    ( cen_Q         ),
+    .cen_oki    ( cen_oki       ),        // 375 kHz
+    // communication with main CPU
+    .cpu_dout   ( cpu_dout      ),
+    .cpu_AB     ( A[2:1]        ),
+    .cs         ( ad0_cs        ),
+    // ROM
+    .rom_addr   ( adpcm0_addr   ),
+    .rom_cs     ( adpcm0_cs     ),
+    .rom_data   ( adpcm0_data   ),
+    .rom_ok     ( adpcm0_ok     ),
+
+    // Sound output
+    .snd        ( adpcm0_snd    )
+);
+
+jtdd_adpcm u_adpcm1(
+    .clk        ( clk           ),
+    .rst        ( rst           ),
+    .cpu_cen    ( cen_Q         ),
+    .cen_oki    ( cen_oki       ),        // 375 kHz
+    // communication with main CPU
+    .cpu_dout   ( cpu_dout      ),
+    .cpu_AB     ( A[2:1]        ),
+    .cs         ( ad1_cs        ),
+    // ROM
+    .rom_addr   ( adpcm1_addr   ),
+    .rom_cs     ( adpcm1_cs     ),
+    .rom_data   ( adpcm1_data   ),
+    .rom_ok     ( adpcm1_ok     ),
+
+    // Sound output
+    .snd        ( adpcm1_snd    )
+);
+
+
+`ifdef SIMULATION
+always @(negedge snd_irq) $display("INFO: sound latch %X", snd_latch );
+`endif
 
 endmodule

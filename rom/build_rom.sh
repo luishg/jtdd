@@ -22,8 +22,8 @@ touch JTDD.rom
 dump "localparam BANK_ADDR"  21j-2-3.25 21j-3.24  21j-4-1.23 21j-4-1.23 # last one is repeated
 dump "localparam MAIN_ADDR"  21j-1-5.26
 dump "localparam SND_ADDR"   21j-0-1
-dump "localparam ADPCM_1"    21j-6
-dump "localparam ADPCM_2"    21j-7
+dump "localparam ADPCM_0"    21j-6
+dump "localparam ADPCM_1"    21j-7
 dump "localparam CHAR_ADDR"  21j-5 21j-5 # repeated once
 
 # Scroll

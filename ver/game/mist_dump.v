@@ -46,12 +46,15 @@ module mist_dump(
             $shm_probe(frame_cnt);
             //$shm_probe(UUT.u_game,"A");
             //$shm_probe(UUT.u_game.u_rom,"AS");
-            $shm_probe(UUT.u_game.u_main,"A");
+            //$shm_probe(UUT.u_game.u_main,"A");
+            $shm_probe(UUT.u_game.u_sound,"A");
+            $shm_probe(UUT.u_game.u_sound.u_adpcm0,"A");
+            $shm_probe(UUT.u_game.u_sound.u_adpcm1,"A");
             //$shm_probe(UUT.u_game.u_video,"A");
             //$shm_probe(UUT.u_game.u_video.u_char,"A");
             //$shm_probe(UUT.u_game.u_video.u_scroll,"A");
-            $shm_probe(UUT.u_game.u_video.u_obj,"A");
-            $shm_probe(UUT.u_game.u_mcu,"A");
+            //$shm_probe(UUT.u_game.u_video.u_obj,"A");
+            //$shm_probe(UUT.u_game.u_mcu,"A");
             //$shm_probe(UUT.u_game.u_mcu.u_6801,"AS");
         `endif
     end

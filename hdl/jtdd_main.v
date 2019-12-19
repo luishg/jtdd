@@ -14,7 +14,7 @@
 
     Author: Jose Tejada Gomez. Twitter: @topapate
     Version: 1.0
-    Date: 2-12-2017 */
+    Date: 2-12-2019 */
 
 // Clocks are derived from H counter on the original PCB
 // Yet, that doesn't seem to be important and it only

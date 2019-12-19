@@ -14,7 +14,7 @@
 
     Author: Jose Tejada Gomez. Twitter: @topapate
     Version: 1.0
-    Date: 2-12-2017 */
+    Date: 2-12-2019 */
 
 `timescale 1ns/1ps
 
@@ -80,17 +80,19 @@ wire       [ 7:0]  cpu_dout;
 wire               cen_E, cen_Q;
 wire       [ 7:0]  char_dout, scr_dout, obj_dout, pal_dout;
 // video signals
-wire               VBL, HBL, IMS;
+wire               VBL, HBL, IMS, H8;
 wire               flip;
 // ROM access
 wire       [14:0]  char_addr, snd_addr;
-wire       [ 7:0]  char_data;
+wire       [15:0]  adpcm0_addr, adpcm1_addr;
+wire       [ 7:0]  char_data, adpcm0_data, adpcm1_data;
 wire       [16:0]  scr_addr;
 wire       [17:0]  obj_addr;
 wire       [15:0]  scr_data, obj_data;
 wire               char_ok, scr_ok, obj_ok, main_ok, snd_ok;
+wire               adpcm0_ok, adpcm1_ok;
 wire       [17:0]  main_addr;
-wire               main_cs, snd_cs;
+wire               main_cs, snd_cs, adpcm0_cs, adpcm1_cs;
 wire       [ 7:0]  main_data, snd_data;
 wire       [13:0]  mcu_addr;
 wire       [ 7:0]  mcu_data;
@@ -275,25 +277,44 @@ jtframe_ram #(.aw(9)) u_shared(
 );
 `endif
 
+`ifndef NOSOUND
 jtdd_sound u_sound(
-    .clk        ( clk       ),
-    .rst        ( rst       ),
-    .cen_E      ( cen6      ),
-    .cen_Q      ( cen6b     ),
+    .clk         ( clk           ),
+    .rst         ( rst           ),
+    .cen_E       ( cen6          ),
+    .cen_Q       ( cen6b         ),
+    .H8          ( H8            ),
     // communication with main CPU
-    .snd_rstb   ( snd_rstb  ),
-    .snd_irq    ( snd_irq   ),
-    .snd_latch  ( snd_latch ),
+    .snd_rstb    ( snd_rstb      ),
+    .snd_irq     ( snd_irq       ),
+    .snd_latch   ( snd_latch     ),
     // ROM
-    .rom_addr   ( snd_addr  ),
-    .rom_cs     ( snd_cs    ),
-    .rom_data   ( snd_data  ),
-    .rom_ok     ( snd_ok    ),
+    .rom_addr    ( snd_addr      ),
+    .rom_cs      ( snd_cs        ),
+    .rom_data    ( snd_data      ),
+    .rom_ok      ( snd_ok        ),
+
+    .adpcm0_addr ( adpcm0_addr   ),
+    .adpcm0_cs   ( adpcm0_cs     ),
+    .adpcm0_data ( adpcm0_data   ),
+    .adpcm0_ok   ( adpcm0_ok     ),
+
+    .adpcm1_addr ( adpcm1_addr   ),
+    .adpcm1_cs   ( adpcm1_cs     ),
+    .adpcm1_data ( adpcm1_data   ),
+    .adpcm1_ok   ( adpcm1_ok     ),
     // Sound output
-    .left       ( snd_left  ),
-    .right      ( snd_right ),
-    .sample     ( sample    )    
+    .left        ( snd_left      ),
+    .right       ( snd_right     ),
+    .sample      ( sample        )    
 );
+`else
+assign sample   = 1'b0;
+assign snd_left = 16'd0;
+assign snd_right= 16'd0;
+assign snd_cs   = 1'b0;
+assign snd_addr = 15'd0;
+`endif
 
 jtdd_video u_video(
     .clk          (  clk             ),
@@ -325,6 +346,7 @@ jtdd_video u_video(
     .HS           (  HS              ),
     .IMS          (  IMS             ),
     .flip         (  flip            ),
+    .H8           (  H8              ),
     // ROM access
     .char_addr    (  char_addr       ),
     .char_data    (  char_data       ),
@@ -351,8 +373,8 @@ jtdd_video u_video(
 localparam BANK_ADDR   = 22'h0_0000;
 localparam MAIN_ADDR   = 22'h2_0000;
 localparam SND_ADDR    = 22'h2_8000;
-localparam ADPCM_1     = 22'h3_0000;
-localparam ADPCM_2     = 22'h4_0000;
+localparam ADPCM_0     = 22'h3_0000;
+localparam ADPCM_1     = 22'h4_0000;
 localparam CHAR_ADDR   = 22'h5_0000;
 
 // reallocated:
@@ -369,6 +391,14 @@ jtframe_rom #(
     .SLOT1_AW    ( 17              ),   // Scroll
     .SLOT1_DW    ( 16              ),
     .SLOT1_OFFSET( SCR_ADDR        ),
+
+    .SLOT2_AW    ( 16              ),   // ADPCM 0
+    .SLOT2_DW    (  8              ),
+    .SLOT2_OFFSET( ADPCM_0>>1      ),
+
+    .SLOT3_AW    ( 16              ),   // ADPCM 1
+    .SLOT3_DW    (  8              ),
+    .SLOT3_OFFSET( ADPCM_1>>1      ),
 
     .SLOT5_AW    ( 14              ),   // MCU
     .SLOT5_DW    (  8              ),
@@ -392,8 +422,8 @@ jtframe_rom #(
 
     .slot0_cs    ( ~VBL          ),
     .slot1_cs    ( ~VBL          ),
-    .slot2_cs    ( 1'b0          ), // unused
-    .slot3_cs    ( 1'b0          ), // unused
+    .slot2_cs    ( adpcm0_cs     ), // ADPCM 0
+    .slot3_cs    ( adpcm1_cs     ), // ADPCM 1
     .slot4_cs    ( 1'b0          ), // unused
     .slot5_cs    ( mcu_cs        ),
     .slot6_cs    ( snd_cs        ),
@@ -402,6 +432,8 @@ jtframe_rom #(
 
     .slot0_ok    ( char_ok       ),
     .slot1_ok    ( scr_ok        ),
+    .slot2_ok    ( adpcm0_ok     ),
+    .slot3_ok    ( adpcm1_ok     ),
     .slot5_ok    ( mcu_ok        ),
     .slot6_ok    ( snd_ok        ),
     .slot7_ok    ( main_ok       ),
@@ -409,6 +441,8 @@ jtframe_rom #(
 
     .slot0_addr  ( char_addr     ),
     .slot1_addr  ( scr_addr      ),
+    .slot2_addr  ( adpcm0_addr   ),
+    .slot3_addr  ( adpcm1_addr   ),
     .slot5_addr  ( mcu_addr      ),
     .slot6_addr  ( snd_addr      ),
     .slot7_addr  ( main_addr     ),
@@ -416,6 +450,8 @@ jtframe_rom #(
 
     .slot0_dout  ( char_data     ),
     .slot1_dout  ( scr_data      ),
+    .slot2_dout  ( adpcm0_data   ),
+    .slot3_dout  ( adpcm1_data   ),
     .slot5_dout  ( mcu_data      ),
     .slot6_dout  ( snd_data      ),
     .slot7_dout  ( main_data     ),

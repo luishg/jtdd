@@ -14,7 +14,7 @@
 
     Author: Jose Tejada Gomez. Twitter: @topapate
     Version: 1.0
-    Date: 2-12-2017 */
+    Date: 2-12-2019 */
 
 `timescale 1ns/1ps
 
@@ -61,6 +61,7 @@ module jtdd_video(
     output             HS,
     output             IMS, // Interrupt Middle Screen
     input              flip,
+    output             H8,
     // PROM programming
     input [7:0]        prog_addr,
     input [3:0]        prom_din,
@@ -93,6 +94,8 @@ jtdd_timing u_timing(
     .HS       (  HS       ),
     .M        (           )
 );
+
+assign H8 = HPOS[3];
 
 jtdd_char u_char(
     .clk         ( clk              ),
