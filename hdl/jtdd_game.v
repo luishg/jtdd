@@ -182,6 +182,7 @@ jtdd_dip u_dip(
     .dipsw_b    (  dipsw_b      )
 );
 
+`ifndef NOMAIN
 jtdd_main u_main(
     .clk            ( clk           ),
     .rst            ( rst_game      ),
@@ -236,6 +237,23 @@ jtdd_main u_main(
     .dipsw_a        ( dipsw_a       ),
     .dipsw_b        ( dipsw_b       )
 );
+`else 
+assign main_cs   = 1'b0;
+assign main_addr = 18'd0;
+assign char_cs   = 1'b0;
+assign scr_cs    = 1'b0;
+assign obj_cs    = 1'b0;
+assign pal_cs    = 1'b0;
+assign mcu_cs    = 1'b0;
+assign flip      = 1'b0;
+assign cpu_AB    = 13'd0;
+assign cpu_wrn   = 1'b1;
+assign scrhpos   = 9'h48;
+assign scrvpos   = 9'h0;
+assign snd_latch = 8'd0;
+assign snd_irq   = 1'b0;
+assign snd_rstb  = 1'b0;
+`endif
 
 `ifndef NOMCU
 jtdd_mcu u_mcu(
