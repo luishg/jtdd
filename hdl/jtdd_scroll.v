@@ -92,7 +92,7 @@ always @(posedge clk) if(pxl_cen) begin
             `SCR_ERROR
         end
         default: begin
-            shift    <= hflip ? (shift<<4) : (shift>>4);
+            shift    <= hflip0 ? (shift<<4) : (shift>>4);
         end
     endcase
 end

@@ -81,7 +81,7 @@ end
 
 wire BL = ~LVBL_dly | ~LHBL_dly;
 
-jtframe_sh #(.width(2), .stages(5)) u_sh(
+jtframe_sh #(.width(2), .stages(6)) u_sh(
     .clk    ( clk                   ),
     .clk_en ( pxl_cen               ),
     .din    ( ~{VBL, HBL}           ),
