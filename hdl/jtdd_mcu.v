@@ -155,6 +155,8 @@ always @(negedge clk,posedge rst) begin : cpu_clockenable
     end
 end
 
+wire halted;
+
 m6801 u_6801(   
     .rst        ( rst           ),
     .clk        ( clk           ),
@@ -165,6 +167,7 @@ m6801 u_6801(
     .data_in    ( mcu_din       ),
     .data_out   ( mcu_dout      ),
     .halt       ( mcu_halt      ),
+    .halted     ( halted        ),
     .irq        ( 1'b0          ),
     .nmi        ( nmi           ),
     .irq_icf    ( 1'b0          ),
@@ -193,7 +196,7 @@ jtframe_dual_ram #(.aw(9)) u_shared(
     
     .data1  ( cpu_dout    ),
     .addr1  ( cpu_AB[8:0] ),
-    .we1    ( ~cpu_wrn & com_cs ),
+    .we1    ( ~cpu_wrn & com_cs & halted),
     .q1     ( shared_dout )
 );
 

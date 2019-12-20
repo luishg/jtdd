@@ -4,7 +4,7 @@
 
 `define CORE_OSD \
     "OGH,Difficulty,very hard, hard, easy, normal;", \
-    "OI,Demo music,ON,OFF;", \
+    "OI,Demo music,OFF,ON;", \
     "OJK,Bonus Life,40k/80k,20k,40k,30k/60k;", \
     "OLM,Lives,infinite,4,3,2;",
     // "ON,Turbo,Off,On;",

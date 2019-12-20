@@ -50,7 +50,7 @@ module jtdd_sound(
     input   [ 7:0]  adpcm1_data,
     input           adpcm1_ok,
     // Sound output
-    output     signed [15:0] sound,
+    output reg signed [15:0] sound,
     output                   sample    
 );
 
@@ -70,19 +70,20 @@ wire signed [15:0] ext1 = { {1{adpcm1_snd[11]}}, adpcm1_snd, 3'b0 };
 wire cen_fm, cen_fm2;
 
 always @(posedge clk) begin
-    snd_pre  <= fm_left + ext0 + ext1;
+    // snd_pre  <= fm_left + ext0 + ext1;
+    sound  <= fm_left + ext0 + ext1;
 end
 
 // Adds a little bit of gain, a x2 factor would be too much
-jtframe_limamp #(.win(16),.wout(16)) u_amp (
-    .clk    ( clk           ),
-    .cen    ( cen_fm2       ),
-    // input signals
-    .sndin  ( snd_pre       ),
-    // gain for each channel in 4.4 fixed point format
-    .gain   ( 8'h18         ),
-    .sndout ( sound         )
-);
+// jtframe_limamp #(.win(16),.wout(16)) u_amp (
+//     .clk    ( clk           ),
+//     .cen    ( cen_fm2       ),
+//     // input signals
+//     .sndin  ( snd_pre       ),
+//     // gain for each channel in 4.4 fixed point format
+//     .gain   ( 8'h18         ),
+//     .sndout ( sound         )
+// );
 
 always @(*) begin
     rom_cs   = A[15];
