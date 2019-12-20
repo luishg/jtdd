@@ -57,9 +57,8 @@ module jtdd_game(
     input           dip_flip,
     input           dip_test,
     input   [ 1:0]  dip_fxlevel, // Not a DIP on the original PCB   
-    // Sound output (stereo game)
-    output  signed [15:0] snd_left,
-    output  signed [15:0] snd_right,
+    // Sound output (monoaural game)
+    output  signed [15:0] snd,
     output          sample,
     input           enable_psg,
     input           enable_fm,
@@ -304,8 +303,7 @@ jtdd_sound u_sound(
     .adpcm1_data ( adpcm1_data   ),
     .adpcm1_ok   ( adpcm1_ok     ),
     // Sound output
-    .left        ( snd_left      ),
-    .right       ( snd_right     ),
+    .sound       ( snd           ),
     .sample      ( sample        )    
 );
 `else
