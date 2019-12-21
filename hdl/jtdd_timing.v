@@ -46,6 +46,8 @@ end
 assign M = m[5:0];
 assign HPOS = hn[7:0] ^ {8{flip}};
 
+reg preVBL;
+
 always @(posedge clk) if(pxl_cen) begin
     // bus phases
     m  <= 8'd0;
@@ -59,15 +61,16 @@ always @(posedge clk) if(pxl_cen) begin
     end else if( hover )begin
         HBL <= 1'b0;
         if( &vn ) begin
-            vn <= (VBL&&!aux) ? 8'he8 : 8'h8;
+            vn <= (preVBL&&!aux) ? 8'he8 : 8'h8;
         end else begin
             vn <= vn + 8'd1;
+            VBL <= preVBL;
             if( vn == 8'hF7 ) begin
-                VBL <= 1'b1;
+                preVBL <= 1'b1;
                 aux <= VBL;
             end
         end
-        if( vn == 8'hff && aux ) VBL <= 1'b0;
+        if( vn == 8'hff && aux ) preVBL <= 1'b0;
     end
 end
 

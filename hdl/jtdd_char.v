@@ -25,6 +25,7 @@ module jtdd_char(
     input              clk,
     input              rst,
     (*direct_enable*)  input pxl_cen,
+    input              pause,
     input      [10:0]  cpu_AB,
     input              char_cs,
     input              cpu_wrn,
@@ -44,9 +45,13 @@ module jtdd_char(
 reg         hi_we, lo_we;
 reg  [ 9:0] scan;
 wire [ 7:0] hi_data, lo_data, cpu_hi, cpu_lo;
+wire [ 7:0] hi_dout, lo_dout, hi_msg, lo_msg;
 
 reg q2;
 always @(posedge clk) q2<=cen_Q;
+
+assign hi_data = pause ? hi_msg : hi_dout;
+assign lo_data = pause ? lo_msg : lo_dout;
 
 always @(*) begin
     lo_we     = q2 && char_cs && !cpu_wrn &&  cpu_AB[0];
@@ -96,7 +101,7 @@ jtframe_dual_ram #(.aw(10),.simfile("char_hi.bin")) u_ram_high(
     .data1  ( 8'd0        ),
     .addr1  ( scan        ),
     .we1    ( 1'b0        ),
-    .q1     ( hi_data     )
+    .q1     ( hi_dout     )
 );
 
 jtframe_dual_ram #(.aw(10),.simfile("char_lo.bin")) u_ram_low(
@@ -110,7 +115,16 @@ jtframe_dual_ram #(.aw(10),.simfile("char_lo.bin")) u_ram_low(
     .data1  ( 8'd0        ),
     .addr1  ( scan        ),
     .we1    ( 1'b0        ),
-    .q1     ( lo_data     )
+    .q1     ( lo_dout     )
+);
+
+jtframe_charmsg #(.VERTICAL(0),.HVAL(8'd0)) u_msg(
+    .clk        ( clk       ),
+    .pxl_cen    ( pxl_cen   ),
+    .avatar_idx ( 0         ),
+    .scan       ( scan      ),
+    .msg_low    ( lo_msg    ),
+    .msg_high   ( hi_msg    )
 );
 
 endmodule

@@ -24,6 +24,7 @@ module jtdd_video(
     input              pxl_cen,
     input              pxl_cenb,
     input              cen12,
+    input              dip_pause,
     // CPU bus
     input      [12:0]  cpu_AB,
     input              cpu_wrn,
@@ -101,6 +102,7 @@ jtdd_char u_char(
     .clk         ( clk              ),
     .rst         ( rst              ),
     .pxl_cen     ( pxl_cen          ),
+    .pause       ( ~dip_pause       ),
     .cpu_AB      ( cpu_AB[10:0]     ),
     .char_cs     ( char_cs          ),
     .cpu_wrn     ( cpu_wrn          ),

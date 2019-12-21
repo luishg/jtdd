@@ -24,3 +24,4 @@
 ../../modules/jtframe/hdl/jtframe_ff.v
 ../../modules/jtframe/hdl/jtframe_sh.v
 ../../modules/jtframe/hdl/sound/jtframe_mixer.v
+../../modules/jtframe/hdl/video/jtframe_charmsg.v

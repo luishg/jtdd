@@ -11,87 +11,62 @@ What you get with this is an extremely accurate (allegedly 100% accurate) clone 
 
 I hope you will have as much fun with it as I had it while making it!
 
-Supported Games
-===============
-
-* Double Dragon
-
 Troubleshooting
 ===============
 
 * Please post any issues to the github page. Click on the issues tab.
 
+https://github.com/jotego/jtdd
 
-How to continue the game
-========================
-Many CAPCOM games of this era require to hold the fire button while pressing 1P to continue the game.
+Conversion Accuracy
+===================
 
-Project Structure
-=================
+The HDL code respects all interaction between the different hardware subsystems. When the original signal names are used, those are in capitals. The handshaking between the main CPU and the MCU follows the original design as well. The M6801 core used for the MCU may or may not be cycle accurate. I have not checked it yet. 
 
-This work has two separate parts:
+Although some dual port memories have been used, they can actually be replaced by single port memories
+with none or minimum changes to the HDL. I moved to dual port memories while I was debugging some glitches,
+which eventually were not related to that, and I just didn't change them back. There is no bus arbitrion
+related to the original memories as bus access is just time interleaved without handshaking in the
+original design.
 
-1. A verilog model of the original hardware, replicated from original schematics. This is found in the hdl folder. Some test benches are available in the "ver" (for verification) folder. Data sheets of parts used in the original design are located in the "doc" folder. This is interesting to understand how it worked. It can be used to repair broken boards too.
-
-2. A modern clone written in Verilog. It has been made with the MiST board in mind but the game itself (jtgng_game module) is highly portable. All components used aim to be cycle exact -some even sub-cycle exact- so the recreation is the most similar thing to having the original PCB you can get.
+The schematics of the original can be found in the doc folder.
 
 Modules
 =======
 
 The FPGA clone uses the following modules:
 
-JT51: For YM2203 sound synthesis. From the same author.
+JT51:    For YM2151 sound synthesis. From the same author.
+JT5205:  For MSM5205 ADPCM sound synthesis. From the same author.
 JTFRAME: A common framework for MiST arcades. From the same author.
-MC6809 from Greg Miller
+MC6809:  from Greg Miller, slightly modified. Part of JTFRAME, the original can be found in github
+MC6801:  By Dukov, slightly modified. It is part of JTFRAME but the original can be found at
+         https://opencores.org/projects/mc6803
+
+When populating the git, remember to use:
+
+git submodule init
+git submodule update
+
+To get the needed modules.
 
 Compilation
 ===========
 
 I use linux as my development system. This means that I use many bash scripts, environment variables and symbolic links. I recommend using linux to compile the cores.
 
-Start by sourcing the setprj.sh script directly from the JTDD directory in order to get the environment variables set.
+Start by sourcing the setprj.sh script directly from the JTDD directory in order to get the environment variables set. Now type
 
-In the directory bin there is a command line utility called jtcore that will compile the given core. Like
+jtdd
 
-jtcore gng
+That will compile the MiST version.
 
-will compile Ghosts'n Goblins for MiST.
-
-jtcore gng -mr
+jtdd -mr
 
 will compile it for MiSTer.
 
 once compilation is triggered, Quartus qpf and qsf files are created. This files are not
 part of the repository as they are considered output files, not input.
-
-There is another file called update_cores.sh that will run jtcore over all supported cores in parallel.
-
-Directory Structure
-===================
-original/hdl/   replica of original PCB schematics
-original/ver/   simulation files for original PCB
-modules         files shared by several games and external files
-modules/mist    
-doc             documents related to original PCB
-doc/74          74' series data sheets
-rom             script to convert from MAME rom files to the required format
-                simulation files expect the rom files here
-gng/            MiST board version of Ghosts'n Goblins.
-                Latest core version is located in this folder and called core.rbf
-gng/hdl         Verilog files of the clone for MiST
-gng/doc         documents related to MiST clone or MiST hardware
-gng/quartus     project to synthesize the clone
-gng/ver         simulation files of MiST clone
-
-1942            MiST board version of 1942 arcade game
-1942/hdl        Verilog files of the clone for MiST
-1942/zxuno      files for ZX-UNO version
-1942/mist       Quartus files for MiST version
-
-1943            MiST board version of 1943 arcade game
-1943/hdl        Verilog files of the clone for MiST
-1943/mist       Quartus files for MiST version
-etc.
 
 HDL Code Structure
 ==================
@@ -131,32 +106,26 @@ For MiST and MiSTer: games can be controlled with both game pads and keyboard. T
 ROM Generation
 ==============
 
-Each core in the releases folder continues files for linux and windows to generate the ROM file starting from a MAME set. Follow the instructions of that file.
+The rom folder contains the batch files for both linux and windows to generate the ROM file starting from a MAME set. Follow the instructions of that file. There is also a MRA file to use directly in MiSTer with the MAME zipped ROM.
 
 SD Card
 =======
 
-For MiST copy the file core.rbf to the SD card at the root directory. Copy also the rom you have generated with the name JTGNG.rom. It will get loaded at start.
+For MiST copy the file core.rbf to the SD card at the root directory. Copy also the rom you have generated with the name JTDD.rom. It will get loaded at start.
 
 Extras
 ======
 
 You can press F12 to bring the OSD menu up. You can turn off music, or sound effects with it. By default, a screen filter makes the screen look closer to an old tube monitor. If you turn it off you will get sharp pixels. Note that if you switch from sharp to soft pixels you will need a couple of seconds to get your eyes used as the brain initially perceives this as an out of focus image compared to the old one.
 
-Sound
-=======
-Original filter for sound (GnG)
-    -high pass filter with cut-off freq. at 1.6Hz
-    -low pass filter with cut-off freq. at 32.3kHz
-
 Credits
 =======
 
 Jose Tejada Gomez. Twitter @topapate
-Project is hosted in http://www.github.com/jotego/jt_gng
+Project is hosted in http://www.github.com/jotego/jtdd
 License: GPL3, you are obligued to publish your code if you use mine
 
-Special thanks to Greg Miller, Bruno Silva and Alexey Melnikov
+Special thanks to Greg Miller, Bruno Silva
 
 
 Thank you all!

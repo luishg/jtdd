@@ -338,6 +338,7 @@ jtdd_video u_video(
     .pxl_cen      (  pxl_cen         ),
     .pxl_cenb     (  pxl_cenb        ),
     .cen12        (  cen12           ),
+    .dip_pause    (  dip_pause       ),
     .cpu_AB       (  cpu_AB          ),
     .pal_cs       (  pal_cs          ),
     .char_cs      (  char_cs         ),
