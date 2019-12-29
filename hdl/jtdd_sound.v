@@ -116,7 +116,7 @@ always @(*) begin
 end
 
 reg E,Q, cen_oki, last_H8, H8_edge;
-assign cpu_cen = Q;
+wire cpu_cen = Q;
 
 always @(posedge clk) begin
     last_H8 <= H8;

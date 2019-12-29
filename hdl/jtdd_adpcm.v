@@ -45,10 +45,11 @@ module jtdd_adpcm(
 
 reg [9:0] cnt;
 reg [3:0] din;
-reg [7:0] addr0, addr1;
-reg       ad_rst, start;
-wire      sample;
-wire      over = addr0 == addr1;
+(*keep*) reg [7:0] addr0, addr1;
+(*keep*) reg       ad_rst, start;
+wire     sample;
+wire     over = addr0 == addr1;
+(*keep*) reg fail;
 
 always @(posedge clk, posedge rst) begin
     if(rst) begin
@@ -56,35 +57,35 @@ always @(posedge clk, posedge rst) begin
         addr1  <= 8'd0;
         ad_rst <= 1'b1;
         cnt    <= 10'd0;
-        start  <= 1'b0;
+        din    <= 4'b0;
     end else begin
-        if(cs & cpu_cen) begin
+        if(cs) begin
             case(cpu_AB)
-                2'd0: start  <= 1'b1;
+                2'd0: ad_rst <= 1'b0;
                 2'd1: addr1  <= cpu_dout;
                 2'd2: addr0  <= cpu_dout;
                 2'd3: begin
                     ad_rst <= 1'b1;       // stop
-                    start  <= 1'b0;
+                    cnt    <= 10'd0;
                 end
             endcase
+            if( cpu_AB != 2'd0 ) begin
+                ad_rst <= 1'b1;
+                cnt    <= 10'd0;
+            end
         end
-        if(sample && start) begin
-            ad_rst <= 1'b0;
-            start  <= 1'b0;
-        end
+        if(rom_ok) din  <= !cnt[0] ? rom_data[7:4] : rom_data[3:0];
         if( !ad_rst ) begin
             if( sample ) begin
-                cnt <= cnt + 10'd1;
+                fail <= !rom_ok;
+                cnt  <= cnt + 10'd1;
                 if(&cnt) addr0 <= addr0+8'd1;
-                din <= !cnt[0] ? rom_data[7:4] : rom_data[3:0];
             end
             if( over ) begin
                 ad_rst <= 1'b1;
                 cnt    <= 10'd0;
             end
         end
-        else cnt <= 10'd0;
     end
 end
 

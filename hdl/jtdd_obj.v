@@ -234,7 +234,7 @@ wire [7:0] ln_dout;
 reg        ln_we;
 reg        copying_dly;
 
-localparam obj_dly = 7;
+localparam obj_dly = 6;
 
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
