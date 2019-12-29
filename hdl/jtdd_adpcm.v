@@ -34,8 +34,8 @@ module jtdd_adpcm(
     input   [ 1:0]      cpu_AB,
     input               cs,
     // ROM
-    output reg [15:0]   rom_addr,
-    output reg          rom_cs,
+    output     [15:0]   rom_addr,
+    output              rom_cs,
     input      [ 7:0]   rom_data,
     input               rom_ok,
 
@@ -44,8 +44,9 @@ module jtdd_adpcm(
 );
 
 reg [9:0] cnt;
+reg [3:0] din;
 reg [7:0] addr0, addr1;
-reg       ad_rst;
+reg       ad_rst, start;
 wire      sample;
 wire      over = addr0 == addr1;
 
@@ -55,34 +56,40 @@ always @(posedge clk, posedge rst) begin
         addr1  <= 8'd0;
         ad_rst <= 1'b1;
         cnt    <= 10'd0;
+        start  <= 1'b0;
     end else begin
         if(cs & cpu_cen) begin
             case(cpu_AB)
-                2'd0: ad_rst <= 1'b0;       // start
+                2'd0: start  <= 1'b1;
                 2'd1: addr1  <= cpu_dout;
                 2'd2: addr0  <= cpu_dout;
-                2'd3: ad_rst <= 1'b1;       // stop
+                2'd3: begin
+                    ad_rst <= 1'b1;       // stop
+                    start  <= 1'b0;
+                end
             endcase
+        end
+        if(sample && start) begin
+            ad_rst <= 1'b0;
+            start  <= 1'b0;
         end
         if( !ad_rst ) begin
             if( sample ) begin
                 cnt <= cnt + 10'd1;
                 if(&cnt) addr0 <= addr0+8'd1;
+                din <= !cnt[0] ? rom_data[7:4] : rom_data[3:0];
             end
             if( over ) begin
                 ad_rst <= 1'b1;
                 cnt    <= 10'd0;
             end
         end
+        else cnt <= 10'd0;
     end
 end
 
-always @(posedge clk) begin
-    rom_addr <= { addr0[6:0], cnt[9:1] };
-    rom_cs   <= ~ad_rst;
-end
-
-wire [3:0] din = !cnt[0] ? rom_data[7:4] : rom_data[3:0];
+assign rom_addr = { addr0[6:0], cnt[9:1] };
+assign rom_cs   = 1'b1;
 
 jt5205 u_decod(
     .rst    ( ad_rst    ),
