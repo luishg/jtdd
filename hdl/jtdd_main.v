@@ -226,7 +226,7 @@ wire ram_we = ram_cs & ~RnW;
 
 jtframe_ram #(.aw(12)) u_ram(
     .clk    ( clk         ),
-    .cen    ( cen_Q       ),
+    .cen    ( cen_Q       ), // using cpu_cen instead of cen_Q creates a wrong sprite on the screen
     .data   ( cpu_dout    ),
     .addr   ( A[11:0]     ),
     .we     ( ram_we      ),
@@ -255,13 +255,21 @@ jtframe_ff #(.W(3)) u_irq(
     .qn      ( { nNMI, nFIRQ, nIRQ }            )
 );
 
-reg E,Q;
+wire E,Q;
 assign cpu_cen = Q;
 
-always @(negedge clk) begin
-    E <= cen_E & (~rom_cs | rom_ok | ~nRESET);
-    Q <= cen_Q & (~rom_cs | rom_ok | ~nRESET);
-end
+jtframe_dual_wait #(1) u_wait(
+    .rst_n      ( nRESET    ),
+    .clk        ( clk       ),
+    .cen_in     ( { cen_E, cen_Q }    ),
+    .cen_out    ( { E,Q          }    ),
+    .gate       ( waitn     ),
+    // manage access to shared memory
+    .dev_busy   ( 1'b0 ),
+    // manage access to ROM data from SDRAM
+    .rom_cs     ( rom_cs    ),
+    .rom_ok     ( rom_ok    )
+);
 
 // cycle accurate core
 wire [111:0] RegData;

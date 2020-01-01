@@ -115,7 +115,8 @@ always @(*) begin
     endcase
 end
 
-reg E,Q, cen_oki, last_H8, H8_edge;
+wire E,Q;
+reg cen_oki, last_H8, H8_edge;
 wire cpu_cen = Q;
 
 always @(posedge clk) begin
@@ -123,11 +124,24 @@ always @(posedge clk) begin
     H8_edge <= H8 && !last_H8;
 end
 
-always @(negedge clk) begin
-    E <= cen_E & (~rom_cs | rom_ok | ~snd_rstb);
-    Q <= cen_Q & (~rom_cs | rom_ok | ~snd_rstb);
+always @(posedge clk) begin
+    //E <= cen_E & (~rom_cs | rom_ok | ~snd_rstb);
+    //Q <= cen_Q & (~rom_cs | rom_ok | ~snd_rstb);
     cen_oki <= H8_edge;
 end
+
+jtframe_dual_wait #(1) u_wait(
+    .rst_n      ( snd_rstb  ),
+    .clk        ( clk       ),
+    .cen_in     ( { cen_E, cen_Q }    ),
+    .cen_out    ( { E,Q          }    ),
+    .gate       (           ),
+    // manage access to shared memory
+    .dev_busy   ( 1'b0 ),
+    // manage access to ROM data from SDRAM
+    .rom_cs     ( rom_cs    ),
+    .rom_ok     ( rom_ok    )
+);
 
 wire ram_we = ram_cs & ~RnW;
 
@@ -145,7 +159,7 @@ jtframe_ff u_ff(
 
 jtframe_ram #(.aw(11)) u_ram(
     .clk    ( clk         ),
-    .cen    ( cen_Q       ),
+    .cen    ( cpu_cen     ),
     .data   ( cpu_dout    ),
     .addr   ( A[10:0]     ),
     .we     ( ram_we      ),
