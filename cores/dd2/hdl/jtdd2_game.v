@@ -293,12 +293,11 @@ assign snd_rstb  = 1'b0;
 jtdd2_sub u_sub(
     .clk          (  clk             ),
     .rst          (  rst_game        ),
-    .cen_Q        (  cpu_cen         ),
     .cen4         (  cen6            ), // temp value
     // CPU bus
-    .cpu_AB       (  cpu_AB[9:0]     ),
-    .cpu_wrn      (  cpu_wrn         ),
-    .cpu_dout     (  cpu_dout        ),
+    .main_AB      (  cpu_AB[9:0]     ),
+    .main_wrn     (  cpu_wrn         ),
+    .main_dout    (  cpu_dout        ),
     .shared_dout  (  mcu_ram         ),
     // CPU Interface
     .com_cs       (  com_cs          ),
@@ -364,6 +363,10 @@ assign snd_left = 16'd0;
 assign snd_right= 16'd0;
 assign snd_cs   = 1'b0;
 assign snd_addr = 15'd0;
+assign adpcm0_cs= 1'b0;
+assign adpcm1_cs= 1'b0;
+assign adpcm0_addr = 17'd0;
+assign adpcm1_addr = 17'd0;
 `endif
 
 jtdd_video u_video(

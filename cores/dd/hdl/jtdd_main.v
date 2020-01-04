@@ -120,28 +120,33 @@ always @(*) begin
             3'd0, 3'd1: ram_cs = 1'b1;
             `ifndef DD2
             3'd2: pal_cs  = 1'b1;
+            `else 
+            3'd2: ram_cs = 1'b1; // more available RAM in DD2
             `endif
             3'd3: char_cs = 1'b1;
             3'd4: com_cs  = 1'b1;
             3'd5: obj_cs  = 1'b1;
             3'd6: scr_cs  = 1'b1;
             3'd7: begin
-                io_cs  = RnW;
-                if(A[3] && !RnW) begin 
-                    case( A[2:0] )
-                        3'd0: misc_cs = 1'b1;
-                        3'd1: w3801   = 1'b1; // H scroll
-                        3'd2: w3802   = 1'b1; // V scroll
-                        3'd3: w3803   = 1'b1; // clear NMI interrupt
-                        3'd4: w3804   = 1'b1; // FIRQ clear
-                        3'd5: w3805   = 1'b1; // IRQ clear
-                        3'd6: w3806   = 1'b1; // sound latch CS
-                        3'd7: w3807   = 1'b1; // MCU NMI set
-                    endcase
-                end
                 `ifdef DD2
-                pal_cs = A[10];
+                if(A[10]) pal_cs = 1'b1;
+                else
                 `endif
+                begin
+                    io_cs  = RnW;
+                    if(A[3] && !RnW) begin 
+                        case( A[2:0] )
+                            3'd0: misc_cs = 1'b1;
+                            3'd1: w3801   = 1'b1; // H scroll
+                            3'd2: w3802   = 1'b1; // V scroll
+                            3'd3: w3803   = 1'b1; // clear NMI interrupt
+                            3'd4: w3804   = 1'b1; // FIRQ clear
+                            3'd5: w3805   = 1'b1; // IRQ clear
+                            3'd6: w3806   = 1'b1; // sound latch CS
+                            3'd7: w3807   = 1'b1; // MCU NMI set
+                        endcase
+                    end
+                end
             end
         endcase
     end else begin
@@ -246,7 +251,7 @@ jtframe_ff #(.W(3)) u_irq(
     .qn      ( { nNMI, nFIRQ, nIRQ }            )
 );
 
-jtframe_sys6809 #(.RAM_AW(12)) u_cpu(
+jtframe_sys6809 #(.RAM_AW(13)) u_cpu(
     .rstn       ( ~rst      ), 
     .clk        ( clk       ),
     .cen        ( cen6      ),    // This is normally the input clock to the CPU

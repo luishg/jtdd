@@ -29,6 +29,10 @@ set_global_assignment -name QIP_FILE     [file join $::quartus(qip_path) ../../m
 # M6809
 set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../../modules/jtframe/hdl/cpu/mc6809i.v         ]
 set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../../modules/jtframe/hdl/cpu/jtframe_sys6809.v ]
+
+# Z80
+set_global_assignment -name QIP_FILE     [file join $::quartus(qip_path) ../../modules/jtframe/hdl/cpu/t80/T80.qip       ]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../../modules/jtframe/hdl/cpu/jtframe_z80.v     ]
 set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../../modules/jtframe/hdl/jtframe_z80wait.v     ]
 
 # JT51 (YM2151)

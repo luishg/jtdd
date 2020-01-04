@@ -46,28 +46,13 @@ module jtdd2_sub(
 
 wire        vma;
 reg         port_cs, ram_cs, shared_cs;
-reg [8:0]   shared_addr;
-reg         shared_we;
-reg [7:0]   shared_data;
 
 wire        rnw;
 wire [15:0] A;
-wire [ 7:0] mcu_dout;
+wire [ 7:0] cpu_dout;
 reg  [ 7:0] cpu_din;
 
 assign  mcu_ban = vma;
-
-always @(*) begin
-    if( vma ) begin
-        shared_addr = A[8:0];
-        shared_data = mcu_dout;
-        shared_we   = ~rnw & shared_cs;
-    end else begin
-        shared_addr = main_AB;
-        shared_data = main_dout;
-        shared_we   = ~main_wrn & com_cs;
-    end
-end
 
 wire       int_n, mreq_n;
 reg        irq_clr;
@@ -147,7 +132,7 @@ jtframe_dual_ram #(.aw(10)) u_shared(
     .clk0   ( clk         ),
     .clk1   ( clk         ),
 
-    .data0  ( mcu_dout    ),
+    .data0  ( cpu_dout    ),
     .addr0  ( A[9:0]      ),
     .we0    ( ~rnw & shared_cs  ),
     .q0     ( sh2mcu_dout ),

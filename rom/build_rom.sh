@@ -55,8 +55,8 @@ OUTFILE=JTDD2.rom
 rm -f JTDD2.rom
 touch JTDD2.rom
 
-dump "localparam BANK_ADDR"  26a9-04.bin 26aa-03.bin 26ab-0.bin 26ab-0.bin # last one is repeated
-dump "localparam MAIN_ADDR"  26ac-0e.63
+dump "localparam BANK_ADDR"  26aa-03.bin 26ab-0.bin 26ac-0e.63 26ac-0e.63 # last one is repeated
+dump "localparam MAIN_ADDR"  26a9-04.bin
 dump "localparam SND_ADDR"   26ad-0.bin
 dump "localparam SUB_ADDR"   26ae-0.bin
 dump "localparam ADPCM_0"    26j6-0.bin
