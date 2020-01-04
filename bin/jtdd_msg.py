@@ -82,5 +82,5 @@ print_char("o                              o")
 print_char("o                              o")
 print_char("oooooooooooooooooooooooooooooooo")
 
-save_hex( os.environ['JTROOT']+"/mist/msg.hex", char_ram )
-save_bin( os.environ['JTROOT']+"/ver/game/msg.bin", char_ram )
+save_hex( os.environ['JTROOT']+"/cores/dd/mist/msg.hex", char_ram )
+save_bin( os.environ['JTROOT']+"/cores/dd/ver/game/msg.bin", char_ram )

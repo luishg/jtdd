@@ -1,1 +1,0 @@
-/home/jtejada/github/jtdd/mist/conf_str.v
