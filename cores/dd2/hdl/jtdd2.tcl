@@ -1,0 +1,7 @@
+set_global_assignment -name VERILOG_MACRO "CORENAME=\"JTDD2\""
+set_global_assignment -name VERILOG_MACRO "GAMETOP=jtdd2_game"
+set_global_assignment -name VERILOG_MACRO "COLORW=4"
+set_global_assignment -name VERILOG_MACRO "DD2=1"
+set_global_assignment -name VERILOG_MACRO "NOSOUND=1"
+set_global_assignment -name VERILOG_MACRO "NOMCU=1"
+# set_global_assignment -name VERILOG_MACRO "AVATARS=1"

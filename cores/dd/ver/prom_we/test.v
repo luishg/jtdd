@@ -14,8 +14,58 @@ wire [ 1:0] prog_mask;
 wire        prog_we;
 wire [`PROM_W-1:0] prom_we;
 
-jtdd_prom_we
-    u_uut(
+`ifndef DD2
+localparam BANK_ADDR   = 22'h00000;
+localparam MAIN_ADDR   = 22'h20000;
+localparam SND_ADDR    = 22'h28000;
+localparam ADPCM_0     = 22'h30000;
+localparam ADPCM_1     = 22'h40000;
+localparam CHAR_ADDR   = 22'h50000;
+// Scroll
+localparam SCRZW_ADDR  = 22'h60000;
+localparam SCRXY_ADDR  = 22'h80000;
+// objects
+localparam OBJWZ_ADDR  = 22'hA0000;
+localparam OBJXY_ADDR  = 22'hE0000;
+// FPGA BRAM:
+localparam MCU_ADDR    = 22'h120000;
+localparam PROM_ADDR   = 22'h124000;
+// ROM length 124300
+`else
+//Double Dragon 2
+localparam BANK_ADDR   = 22'h00000;
+localparam MAIN_ADDR   = 22'h20000;
+localparam SND_ADDR    = 22'h28000;
+localparam SUB_ADDR    = 22'h30000;
+localparam ADPCM_0     = 22'h40000;
+localparam ADPCM_1     = 22'h60000;
+localparam CHAR_ADDR   = 22'h80000;
+// Scroll
+localparam SCRZW_ADDR  = 22'h90000;
+localparam SCRXY_ADDR  = 22'hB0000;
+// objects
+localparam OBJWZ_ADDR  = 22'hD0000;
+localparam OBJXY_ADDR  = 22'h130000;
+// FPGA BRAM:
+localparam PROM_ADDR   = 22'h190000;
+localparam MCU_ADDR    = 22'h190000; // same as PROM_ADDR for DD2
+// ROM length 190200
+`endif
+
+jtdd_prom_we #(
+    .BANK_ADDR  ( BANK_ADDR     ),
+    .MAIN_ADDR  ( MAIN_ADDR     ),
+    .SND_ADDR   ( SND_ADDR      ),
+    .MCU_ADDR   ( MCU_ADDR      ),
+    .ADPCM_0    ( ADPCM_0       ),
+    .ADPCM_1    ( ADPCM_1       ),
+    .CHAR_ADDR  ( CHAR_ADDR     ),
+    .SCRZW_ADDR ( SCRZW_ADDR    ),
+    .SCRXY_ADDR ( SCRXY_ADDR    ),
+    .OBJWZ_ADDR ( OBJWZ_ADDR    ),
+    .OBJXY_ADDR ( OBJXY_ADDR    ),
+    .PROM_ADDR  ( PROM_ADDR     )
+) u_uut(
     .clk         (  clk          ),
     .downloading (  downloading  ),
     .ioctl_addr  (  ioctl_addr   ),

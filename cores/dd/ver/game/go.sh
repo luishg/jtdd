@@ -31,7 +31,7 @@ for k in $*; do
     fi
 done
 
-export GAME_ROM_PATH=../../rom/JTDD.rom
+export GAME_ROM_PATH=../../../rom/JTDD.rom
 export MEM_CHECK_TIME=240_000_000
 export BIN2PNG_OPTIONS="--scale"
 export CONVERT_OPTIONS="-resize 300%x300%"
@@ -48,8 +48,8 @@ fi
 
 # Generic simulation script from JTFRAME
 echo "Game ROM length: " $GAME_ROM_LEN
-../../modules/jtframe/bin/sim.sh $MIST -d GAME_ROM_LEN=$GAME_ROM_LEN \
-    -sysname dd -modules ../../modules -d SCANDOUBLER_DISABLE=1 \
+../../../modules/jtframe/bin/sim.sh $MIST -d GAME_ROM_LEN=$GAME_ROM_LEN \
+    -sysname dd -modules ../../../modules -d SCANDOUBLER_DISABLE=1 \
     -videow 256 -videoh 240 \
     -d JT51_NODEBUG \
     -d JT63701_SIMFILE=',.simfile("../../rom/21jm-0.ic55")' \

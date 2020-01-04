@@ -27,8 +27,7 @@
 module jtdd_main(
     input              clk,
     input              rst,
-    (* direct_enable *) input cen_E,
-    (* direct_enable *) input cen_Q,
+    (* direct_enable *) input cen6,
     output             cpu_cen,
     input              VBL,
     input              IMS, // =VPOS[3]
@@ -81,7 +80,6 @@ module jtdd_main(
 
 wire [15:0] A;
 wire [ 7:0] ram_dout;
-wire nRESET;
 reg io_cs, ram_cs, misc_cs, banked_cs;
 
 // These refer to memory locations to which a write operation
@@ -120,7 +118,9 @@ always @(*) begin
     if( A[15:14]==2'b00 ) begin
         case(A[13:11])
             3'd0, 3'd1: ram_cs = 1'b1;
+            `ifndef DD2
             3'd2: pal_cs  = 1'b1;
+            `endif
             3'd3: char_cs = 1'b1;
             3'd4: com_cs  = 1'b1;
             3'd5: obj_cs  = 1'b1;
@@ -139,6 +139,9 @@ always @(*) begin
                         3'd7: w3807   = 1'b1; // MCU NMI set
                     endcase
                 end
+                `ifdef DD2
+                pal_cs = A[10];
+                `endif
             end
         endcase
     end else begin
@@ -157,7 +160,7 @@ always @(posedge clk or posedge rst) begin
         scrhpos     <= 9'b0;
         scrvpos     <= 9'b0;
         snd_rstb    <= 1'b0;
-    end else if(cen_Q) begin
+    end else if(cpu_cen) begin
         snd_irq <= 1'b0;
         if( sndlatch_cs ) begin
             snd_latch <= cpu_dout;
@@ -175,8 +178,6 @@ always @(posedge clk or posedge rst) begin
         end
     end
 end
-
-assign nRESET = ~rst;
 
 reg [7:0] cabinet_input;
 
@@ -222,16 +223,6 @@ end
 // I have broken up the memory in order to avoid that waste
 // and ease design compilation.
 // RAM which is not shared by the characters
-wire ram_we = ram_cs & ~RnW;
-
-jtframe_ram #(.aw(12)) u_ram(
-    .clk    ( clk         ),
-    .cen    ( cen_Q       ), // using cpu_cen instead of cen_Q creates a wrong sprite on the screen
-    .data   ( cpu_dout    ),
-    .addr   ( A[11:0]     ),
-    .we     ( ram_we      ),
-    .q      ( ram_dout    )
-);
 
 // banked ROM address
 always @(*) begin
@@ -255,69 +246,29 @@ jtframe_ff #(.W(3)) u_irq(
     .qn      ( { nNMI, nFIRQ, nIRQ }            )
 );
 
-wire E,Q;
-assign cpu_cen = Q;
-
-jtframe_dual_wait #(1) u_wait(
-    .rst_n      ( nRESET    ),
+jtframe_sys6809 #(.RAM_AW(12)) u_cpu(
+    .rstn       ( ~rst      ), 
     .clk        ( clk       ),
-    .cen_in     ( { cen_E, cen_Q }    ),
-    .cen_out    ( { E,Q          }    ),
-    .gate       ( waitn     ),
-    // manage access to shared memory
-    .dev_busy   ( 1'b0 ),
-    // manage access to ROM data from SDRAM
+    .cen        ( cen6      ),    // This is normally the input clock to the CPU
+    .cpu_cen    ( cpu_cen   ),   // 1/4th of cen
+
+    // Interrupts
+    .nIRQ       ( nIRQ      ),
+    .nFIRQ      ( nFIRQ     ),
+    .nNMI       ( nNMI      ),
+    // Bus sharing
+    .bus_busy   ( 1'b0      ),
+    .waitn      (           ),
+    // memory interface
+    .A          ( A         ),
+    .RnW        ( RnW       ),
+    .ram_cs     ( ram_cs    ),
     .rom_cs     ( rom_cs    ),
-    .rom_ok     ( rom_ok    )
+    .rom_ok     ( rom_ok    ),
+    // Bus multiplexer is external
+    .ram_dout   ( ram_dout  ),
+    .cpu_dout   ( cpu_dout  ),
+    .cpu_din    ( cpu_din   )
 );
-
-// cycle accurate core
-wire [111:0] RegData;
-
-mc6809i u_cpu(
-    .D       ( cpu_din ),
-    .DOut    ( cpu_dout),
-    .ADDR    ( A       ),
-    .RnW     ( RnW     ),
-    .clk     ( clk     ),
-    .cen_E   ( E       ),
-    .cen_Q   ( Q       ),
-    .BS      (         ),
-    .BA      (         ),
-    .nIRQ    ( nIRQ    ),
-    .nFIRQ   ( nFIRQ   ),
-    .nNMI    ( nNMI    ),
-    .AVMA    (         ),
-    .BUSY    (         ),
-    .LIC     (         ),
-    .nDMABREQ( 1'b1    ),
-    .nHALT   ( 1'b1    ),   
-    .nRESET  ( nRESET  ),
-    .RegData ( RegData )
-);
-`ifdef SIMULATION
-wire [ 7:0] reg_a  = RegData[7:0];
-wire [ 7:0] reg_b  = RegData[15:8];
-wire [15:0] reg_x  = RegData[31:16];
-wire [15:0] reg_y  = RegData[47:32];
-wire [15:0] reg_s  = RegData[63:48];
-wire [15:0] reg_u  = RegData[79:64];
-wire [ 7:0] reg_cc = RegData[87:80];
-wire [ 7:0] reg_dp = RegData[95:88];
-wire [15:0] reg_pc = RegData[111:96];
-reg [95:0] last_regdata;
-
-integer fout;
-initial begin
-    fout = $fopen("m6809.log","w");
-end
-always @(posedge rom_cs) begin
-    last_regdata <= RegData[95:0];
-    if( last_regdata != RegData[95:0] ) begin
-        $fwrite(fout,"%X, X %X, Y %X, A %X, B %X\n",
-            reg_pc, reg_x, reg_y, reg_a, reg_b);
-    end
-end
-`endif
 
 endmodule // jtdd_main

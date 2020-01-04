@@ -38,24 +38,28 @@ module jtdd_prom_we(
     output reg           prom_we
 );
 
-localparam PW=1;
+parameter PW=1;
 
-localparam BANK_ADDR   = 22'h00000;
-localparam MAIN_ADDR   = 22'h20000;
-localparam SND_ADDR    = 22'h28000;
-localparam ADPCM_0     = 22'h30000;
-localparam ADPCM_1     = 22'h40000;
-localparam CHAR_ADDR   = 22'h50000;
+parameter BANK_ADDR   = 22'h00000;
+parameter MAIN_ADDR   = 22'h20000;
+parameter SND_ADDR    = 22'h28000;
+parameter ADPCM_0     = 22'h30000;
+parameter ADPCM_1     = 22'h40000;
+parameter CHAR_ADDR   = 22'h50000;
 // Scroll
-localparam SCRZW_ADDR  = 22'h60000;
-localparam SCRXY_ADDR  = 22'h80000;
+parameter SCRZW_ADDR  = 22'h60000;
+parameter SCRXY_ADDR  = 22'h80000;
 // objects
-localparam OBJWZ_ADDR  = 22'hA0000;
-localparam OBJXY_ADDR  = 22'hE0000;
+parameter OBJWZ_ADDR  = 22'hA0000;
+parameter OBJXY_ADDR  = 22'hE0000;
 // FPGA BRAM:
-localparam MCU_ADDR    = 22'h120000;
-localparam PROM_ADDR   = 22'h124000;
+parameter MCU_ADDR    = 22'h120000;
+parameter PROM_ADDR   = 22'h124000;
 // ROM length 124300
+localparam SCRWR = 5'd6;
+localparam OBJWR = 5'd8;
+
+localparam [4:0] OBJHALF = OBJXY_ADDR[20:16]-OBJWZ_ADDR[20:16];
 
 `ifdef SIMULATION
 // simulation watchers
@@ -95,10 +99,10 @@ always @(posedge clk) begin
     end
 end
 
-wire [3:0] scr_msb = ioctl_addr[19:16]-4'd6;
-wire [4:0] obj_msb = ioctl_addr[20:16]-5'hA;
+wire [3:0] scr_msb = ioctl_addr[19:16]-SCRZW_ADDR[19:16];
+wire [4:0] obj_msb = ioctl_addr[20:16]-OBJWZ_ADDR[20:16];
 wire       scr_top = scr_msb[1];
-wire       obj_top = obj_msb[2];
+wire       obj_top = obj_msb>=OBJHALF;
 wire [1:0] mask8   = {~ioctl_addr[0], ioctl_addr[0]};
 
 always @(posedge clk) begin
@@ -125,13 +129,13 @@ always @(posedge clk) begin
         end
         else if(ioctl_addr[21:16] < OBJWZ_ADDR[21:16] ) begin // Scroll    
             prog_mask <= scr_top ? 2'b01 : 2'b10;
-            prog_addr <= { 5'd4+{1'b0,scr_top ? scr_msb-4'h2 : scr_msb}, 
+            prog_addr <= { SCRWR+{1'b0,scr_top ? scr_msb-4'h2 : scr_msb}, 
                 ioctl_addr[15:6], ioctl_addr[3:0], ioctl_addr[5:4] };
             `INFO_SCR
         end
         else if(ioctl_addr[21:16] < MCU_ADDR[21:16] ) begin // Objects
             prog_mask <= !obj_top ? 2'b10 : 2'b01;
-            prog_addr <= { 5'd8+( obj_top  ? obj_msb - 5'd4 : obj_msb), 
+            prog_addr <= { OBJWR+( obj_top  ? obj_msb - 5'd4 : obj_msb), 
                 ioctl_addr[15:6], ioctl_addr[3:0], ioctl_addr[5:4] };
             `INFO_OBJ
         end

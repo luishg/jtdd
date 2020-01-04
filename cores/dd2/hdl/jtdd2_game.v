@@ -18,7 +18,7 @@
 
 `timescale 1ns/1ps
 
-module jtdd_game(
+module jtdd2_game(
     input           clk,
     input           rst,
     output          pxl2_cen,
@@ -83,7 +83,7 @@ wire               VBL, HBL, IMS, H8;
 wire               flip;
 // ROM access
 wire       [14:0]  char_addr, snd_addr;
-wire       [15:0]  adpcm0_addr, adpcm1_addr;
+wire       [16:0]  adpcm0_addr, adpcm1_addr;
 wire       [ 7:0]  char_data, adpcm0_data, adpcm1_data;
 wire       [16:0]  scr_addr;
 wire       [17:0]  obj_addr;
@@ -93,7 +93,7 @@ wire               adpcm0_ok, adpcm1_ok;
 wire       [17:0]  main_addr;
 wire               main_cs, snd_cs, adpcm0_cs, adpcm1_cs;
 wire       [ 7:0]  main_data, snd_data;
-wire       [13:0]  mcu_addr;
+wire       [15:0]  mcu_addr;
 wire       [ 7:0]  mcu_data;
 wire               mcu_cs, mcu_ok;
 // Sound
@@ -120,6 +120,28 @@ assign cen_Q    = cen3qb;
 assign pxl_cen  = cen6;
 wire   pxl_cenb = cen6b;
 assign pxl2_cen = cen12;
+
+localparam BANK_ADDR   = 22'h00000;
+localparam MAIN_ADDR   = 22'h20000;
+localparam SND_ADDR    = 22'h28000;
+localparam SUB_ADDR    = 22'h30000;
+localparam ADPCM_0     = 22'h40000;
+localparam ADPCM_1     = 22'h60000;
+localparam CHAR_ADDR   = 22'h80000;
+// Scroll
+localparam SCRZW_ADDR  = 22'h90000;
+localparam SCRXY_ADDR  = 22'hB0000;
+// objects
+localparam OBJWZ_ADDR  = 22'hD0000;
+localparam OBJXY_ADDR  = 22'h130000;
+// FPGA BRAM:
+localparam PROM_ADDR   = 22'h190000;
+// ROM length 190200
+// reallocated:
+localparam [21:0] SCR_SDRAM  = 22'h6_0000;
+localparam [21:0] OBJ_SDRAM  = 22'h8_0000;
+
+
 
 `ifdef MISTER
 
@@ -158,7 +180,20 @@ jtframe_cen48 u_cen(
     .cen6b   (  cen6b    )
 );
 
-jtdd_prom_we u_prom(
+jtdd_prom_we #(
+    .BANK_ADDR   ( BANK_ADDR    ),
+    .MAIN_ADDR   ( MAIN_ADDR    ),
+    .SND_ADDR    ( SND_ADDR     ),
+    .ADPCM_0     ( ADPCM_0      ),
+    .ADPCM_1     ( ADPCM_1      ),
+    .CHAR_ADDR   ( CHAR_ADDR    ),
+    .SCRZW_ADDR  ( SCRZW_ADDR   ),
+    .SCRXY_ADDR  ( SCRXY_ADDR   ),
+    .OBJWZ_ADDR  ( OBJWZ_ADDR   ),
+    .OBJXY_ADDR  ( OBJXY_ADDR   ),
+    .PROM_ADDR   ( PROM_ADDR    ),
+    .MCU_ADDR    ( PROM_ADDR    )) // must be equal to PROM
+u_prom(
     .clk          ( clk             ),
     .downloading  ( downloading     ),
     .ioctl_addr   ( ioctl_addr      ),
@@ -255,13 +290,13 @@ assign snd_rstb  = 1'b0;
 `endif
 
 `ifndef NOMCU
-jtdd_mcu u_mcu(
+jtdd2_sub u_sub(
     .clk          (  clk             ),
     .rst          (  rst_game        ),
     .cen_Q        (  cpu_cen         ),
-    .cen6         (  cen6            ),
+    .cen4         (  cen6            ), // temp value
     // CPU bus
-    .cpu_AB       (  cpu_AB[8:0]     ),
+    .cpu_AB       (  cpu_AB[9:0]     ),
     .cpu_wrn      (  cpu_wrn         ),
     .cpu_dout     (  cpu_dout        ),
     .shared_dout  (  mcu_ram         ),
@@ -294,7 +329,7 @@ jtframe_ram #(.aw(9)) u_shared(
 `endif
 
 `ifndef NOSOUND
-jtdd_sound u_sound(
+jtdd2_sound u_sound(
     .clk         ( clk           ),
     .rst         ( rst           ),
     .cen_E       ( cen6          ),
@@ -385,19 +420,8 @@ jtdd_video u_video(
     .gfx_en       (  gfx_en          )
 );
 
-// Same as locations inside JTDD.rom file
-localparam BANK_ADDR   = 22'h0_0000;
-localparam MAIN_ADDR   = 22'h2_0000;
-localparam SND_ADDR    = 22'h2_8000;
-localparam ADPCM_0     = 22'h3_0000;
-localparam ADPCM_1     = 22'h4_0000;
-localparam CHAR_ADDR   = 22'h5_0000;
-
-// reallocated:
 localparam SCR_ADDR  = 22'h6_0000;
 localparam OBJ_ADDR  = 22'h8_0000;
-localparam MCU_ADDR  = 22'hC_0000;
-
 
 jtframe_rom #(
     .SLOT0_AW    ( 15              ),   // Char
@@ -408,17 +432,17 @@ jtframe_rom #(
     .SLOT1_DW    ( 16              ),
     .SLOT1_OFFSET( SCR_ADDR        ),
 
-    .SLOT2_AW    ( 16              ),   // ADPCM 0
+    .SLOT2_AW    ( 17              ),   // ADPCM 0
     .SLOT2_DW    (  8              ),
     .SLOT2_OFFSET( ADPCM_0>>1      ),
 
-    .SLOT3_AW    ( 16              ),   // ADPCM 1
+    .SLOT3_AW    ( 17              ),   // ADPCM 1
     .SLOT3_DW    (  8              ),
     .SLOT3_OFFSET( ADPCM_1>>1      ),
 
-    .SLOT5_AW    ( 14              ),   // MCU
+    .SLOT5_AW    ( 16              ),   // SUB
     .SLOT5_DW    (  8              ),
-    .SLOT5_OFFSET( MCU_ADDR        ),
+    .SLOT5_OFFSET( SUB_ADDR>>1     ),
     
     .SLOT7_AW    ( 18              ),
     .SLOT7_DW    (  8              ),
