@@ -49,7 +49,7 @@ module jtdd_colmix(
     input      [3:0] gfx_en
 );
 
-parameter SIM_PRIO="../../rom/21j-k-0";
+parameter SIM_PRIO="../../../rom/21j-k-0";
 
 wire [7:0] pal_gr;
 wire [3:0] pal_b;

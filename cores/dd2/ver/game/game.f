@@ -1,4 +1,5 @@
 ../../hdl/jtdd2_game.v
+../../hdl/jtdd2_sound.v
 ../../hdl/jtdd2_sub.v
 ../../../dd/hdl/jtdd_main.v
 ../../../dd/hdl/jtdd_dip.v
@@ -9,7 +10,6 @@
 ../../../dd/hdl/jtdd_obj.v
 ../../../dd/hdl/jtdd_colmix.v
 ../../../dd/hdl/jtdd_prom_we.v
-# ../../../dd/hdl/jtdd_sound.v
 
 ../../../modules/jtframe/hdl/ram/jtframe_prom.v
 ../../../modules/jtframe/hdl/ram/jtframe_ram.v

@@ -24,11 +24,9 @@
 
 `timescale 1ns/1ps
 
-module jtdd_sound(
+module jtdd2_sound(
     input           clk,
     input           rst,
-    (* direct_enable *) input cen_E,
-    (* direct_enable *) input cen_Q,
     input           H8,
     // communication with main CPU
     input           snd_rstb,
@@ -40,12 +38,12 @@ module jtdd_sound(
     input   [ 7:0]  rom_data,
     input           rom_ok,
 
-    output  [15:0]  adpcm0_addr,
+    output  [16:0]  adpcm0_addr,
     output          adpcm0_cs,
     input   [ 7:0]  adpcm0_data,
     input           adpcm0_ok,
 
-    output  [15:0]  adpcm1_addr,
+    output  [16:0]  adpcm1_addr,
     output          adpcm1_cs,
     input   [ 7:0]  adpcm1_data,
     input           adpcm1_ok,
@@ -54,24 +52,28 @@ module jtdd_sound(
     output                   sample    
 );
 
+assign adpcm0_cs = 1'b0;
+assign adpcm1_cs = 1'b0;
+assign adpcm0_addr = 17'd0;
+assign adpcm1_addr = 17'd0;
+
 wire [ 7:0] cpu_dout, ram_dout, fm_dout;
 wire [15:0] A;
 reg  [ 7:0] cpu_din;
-wire        RnW, firq_n, irq_n;
-wire signed [11:0] adpcm0_snd, adpcm1_snd;
+wire        wr_n, int_n, nmi_n;
+wire signed [11:0] adpcm0_snd;
 wire signed [15:0] fm_left, fm_right;
 reg  signed [15:0] snd_pre;
-reg ram_cs, latch_cs, ad_cs, fm_cs, ad0_cs, ad1_cs;
+reg ram_cs, latch_cs, oki_cs, fm_cs;
 
 assign rom_addr = A[14:0];
 
 wire signed [15:0] ext0 = { {1{adpcm0_snd[11]}}, adpcm0_snd, 3'b0 };
-wire signed [15:0] ext1 = { {1{adpcm1_snd[11]}}, adpcm1_snd, 3'b0 };
 wire cen_fm, cen_fm2;
 
 always @(posedge clk) begin
     // snd_pre  <= fm_left + ext0 + ext1;
-    sound  <= fm_left + ext0 + ext1;
+    sound  <= fm_left; // + ext0;
 end
 
 // Adds a little bit of gain, a x2 factor would be too much
@@ -86,23 +88,22 @@ end
 // );
 
 always @(*) begin
-    rom_cs   = A[15];
     ram_cs   = 1'b0;
     latch_cs = 1'b0;
-    ad_cs    = 1'b0;
     fm_cs    = 1'b0;
-    ad0_cs   = 1'b0;
-    ad1_cs   = 1'b0;
-    if(!A[15]) case(A[14:11])
-        4'd0: ram_cs   = 1'b1;
-        4'd2: latch_cs = 1'b1;
-        4'd3: ad_cs    = 1'b1;
-        4'd5: fm_cs    = 1'b1;
-        4'd7: if(!RnW) begin
-            ad0_cs = ~A[0];
-            ad1_cs =  A[0];
+    oki_cs   = 1'b0;
+    rom_cs   = 1'b0;
+    if(!mreq_n) begin
+        if(A[15]) begin
+            case(A[14:11])
+                4'b0000: ram_cs   = 1'b1; // 8000-87ff
+                4'b0001: fm_cs    = 1'b1; // 8800-8801
+                4'b0011: oki_cs   = 1'b1; // 9800
+                4'b0100: latch_cs = 1'b1; // a000
+            endcase
         end
-    endcase
+        else rom_cs = 1'b1;
+    end
 end
 
 always @(*) begin
@@ -112,13 +113,11 @@ always @(*) begin
         ram_cs:   cpu_din = ram_dout;
         latch_cs: cpu_din = snd_latch;
         fm_cs:    cpu_din = fm_dout;
-        ad_cs:    cpu_din = {~6'h0, adpcm1_cs, adpcm0_cs};
+        //ad_cs:    cpu_din = {~6'h0, adpcm1_cs, adpcm0_cs};
     endcase
 end
 
-wire E,Q;
 reg cen_oki, last_H8, H8_edge;
-wire cpu_cen = Q;
 
 always @(posedge clk) begin
     last_H8 <= H8;
@@ -126,25 +125,8 @@ always @(posedge clk) begin
 end
 
 always @(posedge clk) begin
-    //E <= cen_E & (~rom_cs | rom_ok | ~snd_rstb);
-    //Q <= cen_Q & (~rom_cs | rom_ok | ~snd_rstb);
     cen_oki <= H8_edge;
 end
-
-jtframe_dual_wait #(1) u_wait(
-    .rst_n      ( snd_rstb  ),
-    .clk        ( clk       ),
-    .cen_in     ( { cen_E, cen_Q }    ),
-    .cen_out    ( { E,Q          }    ),
-    .gate       (           ),
-    // manage access to shared memory
-    .dev_busy   ( 1'b0 ),
-    // manage access to ROM data from SDRAM
-    .rom_cs     ( rom_cs    ),
-    .rom_ok     ( rom_ok    )
-);
-
-wire ram_we = ram_cs & ~RnW;
 
 jtframe_ff u_ff(
     .clk      ( clk         ),
@@ -152,41 +134,35 @@ jtframe_ff u_ff(
     .cen      ( 1'b1        ),
     .din      ( 1'b1        ),
     .q        (             ),
-    .qn       ( irq_n       ),
+    .qn       ( nmi_n       ),
     .set      ( 1'b0        ),    // active high
     .clr      ( latch_cs    ),    // active high
     .sigedge  ( snd_irq     ) // signal whose edge will trigger the FF
 );
 
-jtframe_ram #(.aw(11)) u_ram(
-    .clk    ( clk         ),
-    .cen    ( cpu_cen     ),
-    .data   ( cpu_dout    ),
-    .addr   ( A[10:0]     ),
-    .we     ( ram_we      ),
-    .q      ( ram_dout    )
-);
-
-mc6809i u_cpu(
-    .D       ( cpu_din ),
-    .DOut    ( cpu_dout),
-    .ADDR    ( A       ),
-    .RnW     ( RnW     ),
-    .clk     ( clk     ),
-    .cen_E   ( E       ),
-    .cen_Q   ( Q       ),
-    .BS      (         ),
-    .BA      (         ),
-    .nIRQ    ( irq_n   ),
-    .nFIRQ   ( firq_n  ),
-    .nNMI    ( 1'b1    ),
-    .AVMA    (         ),
-    .BUSY    (         ),
-    .LIC     (         ),
-    .nDMABREQ( 1'b1    ),
-    .nHALT   ( 1'b1    ),   
-    .nRESET  ( snd_rstb),
-    .RegData (         )
+jtframe_sysz80 #(.RAM_AW(11)) u_cpu(
+    .rst_n      ( ~rst          ),
+    .clk        ( clk           ),
+    .cen        ( cen_fm        ),
+    .cpu_cen    (               ),
+    .int_n      ( int_n         ),
+    .nmi_n      ( nmi_n         ),
+    .busrq_n    ( 1'b1          ),
+    .m1_n       (               ),
+    .mreq_n     ( mreq_n        ),
+    .iorq_n     (               ),
+    .rd_n       (               ),
+    .wr_n       ( wr_n          ),
+    .rfsh_n     (               ),
+    .halt_n     (               ),
+    .busak_n    (               ),
+    .A          ( A             ),
+    .cpu_din    ( cpu_din       ),
+    .cpu_dout   ( cpu_dout      ),
+    .ram_dout   ( ram_dout      ),
+    .ram_cs     ( ram_cs        ),
+    .rom_cs     ( rom_cs        ),
+    .rom_ok     ( rom_ok        )
 );
 
 jtframe_cen3p57 u_fmcen(
@@ -201,13 +177,13 @@ jt51 u_jt51(
     .cen        ( cen_fm    ),
     .cen_p1     ( cen_fm2   ),
     .cs_n       ( !fm_cs    ), // chip select
-    .wr_n       ( RnW       ), // write
+    .wr_n       ( wr_n       ), // write
     .a0         ( A[0]      ),
     .din        ( cpu_dout  ), // data in
     .dout       ( fm_dout   ), // data out
     .ct1        (           ),
     .ct2        (           ),
-    .irq_n      ( firq_n    ),  // I do not synchronize this signal
+    .irq_n      ( int_n     ),  // I do not synchronize this signal
     // Low resolution output (same as real chip)
     .sample     ( sample    ), // marks new output sample
     .left       (           ),
@@ -219,48 +195,5 @@ jt51 u_jt51(
     .dacleft    (           ),
     .dacright   (           )
 );
-
-jtdd_adpcm u_adpcm0(
-    .clk        ( clk           ),
-    .rst        ( rst           ),
-    .cpu_cen    ( cen_Q         ),
-    .cen_oki    ( cen_oki       ),        // 375 kHz
-    // communication with main CPU
-    .cpu_dout   ( cpu_dout      ),
-    .cpu_AB     ( A[2:1]        ),
-    .cs         ( ad0_cs        ),
-    // ROM
-    .rom_addr   ( adpcm0_addr   ),
-    .rom_cs     ( adpcm0_cs     ),
-    .rom_data   ( adpcm0_data   ),
-    .rom_ok     ( adpcm0_ok     ),
-
-    // Sound output
-    .snd        ( adpcm0_snd    )
-);
-
-jtdd_adpcm u_adpcm1(
-    .clk        ( clk           ),
-    .rst        ( rst           ),
-    .cpu_cen    ( cen_Q         ),
-    .cen_oki    ( cen_oki       ),        // 375 kHz
-    // communication with main CPU
-    .cpu_dout   ( cpu_dout      ),
-    .cpu_AB     ( A[2:1]        ),
-    .cs         ( ad1_cs        ),
-    // ROM
-    .rom_addr   ( adpcm1_addr   ),
-    .rom_cs     ( adpcm1_cs     ),
-    .rom_data   ( adpcm1_data   ),
-    .rom_ok     ( adpcm1_ok     ),
-
-    // Sound output
-    .snd        ( adpcm1_snd    )
-);
-
-
-`ifdef SIMULATION
-always @(negedge snd_irq) $display("INFO: sound latch %X", snd_latch );
-`endif
 
 endmodule

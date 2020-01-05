@@ -333,8 +333,6 @@ jtframe_ram #(.aw(9)) u_shared(
 jtdd2_sound u_sound(
     .clk         ( clk           ),
     .rst         ( rst           ),
-    .cen_E       ( cen6          ),
-    .cen_Q       ( cen6b         ),
     .H8          ( H8            ),
     // communication with main CPU
     .snd_rstb    ( snd_rstb      ),

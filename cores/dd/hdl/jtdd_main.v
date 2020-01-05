@@ -86,7 +86,7 @@ reg io_cs, ram_cs, misc_cs, banked_cs;
 // has some hardware effect. In reality A[3] must be high too
 // so the labels are incorrect. But I keep the ones used in the
 // schematics
-reg w3801, w3802, w3803, w3804, w3805, w3806, w3807;
+(*keep*) reg w3801, w3802, w3803, w3804, w3805, w3806, w3807;
 wire scrhpos_cs  = w3801; // sch. sheet 8/10
 wire scrvpos_cs  = w3802;
 `ifdef SIMULATION

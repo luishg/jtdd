@@ -44,13 +44,14 @@ module jtdd2_sub(
 
 );
 
-reg         ram_cs, shared_cs, nmi_ack;
-wire        rnw, int_n, mreq_n;
+(*keep*) reg         ram_cs, shared_cs, nmi_ack;
+(*keep*) wire        rnw, int_n, mreq_n, busak_n;
 wire [15:0] A;
 wire [ 7:0] cpu_dout;
 reg  [ 7:0] cpu_din;
-//wire halted = ~mcu_ban;
-assign mcu_ban = 1'b0;
+assign mcu_ban = busak_n;
+wire halted = ~mcu_ban;
+(*keep*) wire busrq_n = ~mcu_halt;
 
 jtframe_ff u_nmi(
     .clk     (   clk          ),
@@ -79,8 +80,8 @@ always @(*) begin
         else begin
             case( A[13:12])
                 2'b00: shared_cs   = 1'b1; // C
-                2'b01: nmi_ack     = 1'b1; // D
-                2'b10: mcu_irqmain = 1'b1; // E
+                2'b01: nmi_ack     = !rnw; // D
+                2'b10: mcu_irqmain = !rnw; // E
                 default:;
             endcase
         end
@@ -104,7 +105,7 @@ jtframe_z80_wait u_sub(
     .cen        ( cen4          ),
     .int_n      ( 1'b1          ),
     .nmi_n      ( int_n         ),
-    .busrq_n    ( ~mcu_halt     ),
+    .busrq_n    ( busrq_n       ),
     .m1_n       (               ),
     .mreq_n     ( mreq_n        ),
     .iorq_n     (               ),
@@ -112,7 +113,7 @@ jtframe_z80_wait u_sub(
     .wr_n       ( rnw           ),
     .rfsh_n     (               ),
     .halt_n     (               ),
-    .busak_n    ( mcu_ban       ),
+    .busak_n    ( busak_n       ),
     .A          ( A             ),
     .din        ( cpu_din       ),
     .dout       ( cpu_dout      ),
