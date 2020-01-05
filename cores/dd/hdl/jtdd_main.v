@@ -27,10 +27,10 @@
 module jtdd_main(
     input              clk,
     input              rst,
-    (* direct_enable *) input cen6,
+    (* direct_enable *) input cen12,
     output             cpu_cen,
     input              VBL,
-    input              IMS, // =VPOS[3]
+(*keep*)    input              IMS, // =VPOS[3]
     // MCU
     input       [7:0]  mcu_ram,
     input              mcu_irqmain,
@@ -236,8 +236,8 @@ always @(*) begin
 end
 
 // Interrupts
-wire nIRQ, nFIRQ, nNMI;
-wire VBL_pause = VBL & dip_pause;
+(*keep*) wire nIRQ, nFIRQ, nNMI;
+(*keep*) wire VBL_pause = VBL & dip_pause;
 
 jtframe_ff #(.W(3)) u_irq(
     .clk     (   clk                            ),
@@ -254,8 +254,8 @@ jtframe_ff #(.W(3)) u_irq(
 jtframe_sys6809 #(.RAM_AW(13)) u_cpu(
     .rstn       ( ~rst      ), 
     .clk        ( clk       ),
-    .cen        ( cen6      ),    // This is normally the input clock to the CPU
-    .cpu_cen    ( cpu_cen   ),   // 1/4th of cen
+    .cen        ( cen12     ),    // This is normally the input clock to the CPU
+    .cpu_cen    ( cpu_cen   ),   // 1/4th of cen -> 3MHz
 
     // Interrupts
     .nIRQ       ( nIRQ      ),

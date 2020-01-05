@@ -36,7 +36,7 @@ module jtdd_video(
     // Char
     input              char_cs,
     output     [ 7:0]  char_dout,
-    output     [14:0]  char_addr,
+    output     [15:0]  char_addr,
     input      [ 7:0]  char_data,
     input              char_ok,
     // Scroll
@@ -50,7 +50,7 @@ module jtdd_video(
     // Object
     input              obj_cs,
     output     [ 7:0]  obj_dout,
-    output     [17:0]  obj_addr,
+    output     [18:0]  obj_addr,
     input      [15:0]  obj_data,
     input              obj_ok,    
     // video signals

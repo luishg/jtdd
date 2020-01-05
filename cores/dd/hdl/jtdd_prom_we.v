@@ -99,11 +99,13 @@ always @(posedge clk) begin
     end
 end
 
-wire [3:0] scr_msb = ioctl_addr[19:16]-SCRZW_ADDR[19:16];
-wire [4:0] obj_msb = ioctl_addr[20:16]-OBJWZ_ADDR[20:16];
-wire       scr_top = scr_msb[1];
-wire       obj_top = obj_msb>=OBJHALF;
-wire [1:0] mask8   = {~ioctl_addr[0], ioctl_addr[0]};
+wire [3:0] scr_msb  = ioctl_addr[19:16]-SCRZW_ADDR[19:16];
+wire [3:0] scr2_msb = ioctl_addr[19:16]-SCRXY_ADDR[19:16];
+wire [4:0] obj_msb  = ioctl_addr[20:16]-OBJWZ_ADDR[20:16];
+wire [4:0] obj2_msb = ioctl_addr[20:16]-OBJXY_ADDR[20:16];
+wire       scr_top  = scr_msb[1];
+wire       obj_top  = obj_msb>=OBJHALF;
+wire [1:0] mask8    = {~ioctl_addr[0], ioctl_addr[0]};
 
 always @(posedge clk) begin
     if( set_done ) set_strobe <= 1'b0;
@@ -129,13 +131,13 @@ always @(posedge clk) begin
         end
         else if(ioctl_addr[21:16] < OBJWZ_ADDR[21:16] ) begin // Scroll    
             prog_mask <= scr_top ? 2'b01 : 2'b10;
-            prog_addr <= { SCRWR+{1'b0,scr_top ? scr_msb-4'h2 : scr_msb}, 
+            prog_addr <= { SCRWR+{1'b0,scr_top ? scr2_msb : scr_msb}, 
                 ioctl_addr[15:6], ioctl_addr[3:0], ioctl_addr[5:4] };
             `INFO_SCR
         end
         else if(ioctl_addr[21:16] < MCU_ADDR[21:16] ) begin // Objects
             prog_mask <= !obj_top ? 2'b10 : 2'b01;
-            prog_addr <= { OBJWR+( obj_top  ? obj_msb - 5'd4 : obj_msb), 
+            prog_addr <= { OBJWR+( obj_top  ? obj2_msb : obj_msb), 
                 ioctl_addr[15:6], ioctl_addr[3:0], ioctl_addr[5:4] };
             `INFO_OBJ
         end

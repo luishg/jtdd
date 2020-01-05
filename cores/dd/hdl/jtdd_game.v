@@ -82,7 +82,8 @@ wire       [ 7:0]  char_dout, scr_dout, obj_dout, pal_dout;
 wire               VBL, HBL, IMS, H8;
 wire               flip;
 // ROM access
-wire       [14:0]  char_addr, snd_addr;
+wire       [15:0]  char_addr;
+wire       [14:0]  snd_addr;
 wire       [15:0]  adpcm0_addr, adpcm1_addr;
 wire       [ 7:0]  char_data, adpcm0_data, adpcm1_data;
 wire       [16:0]  scr_addr;
@@ -186,7 +187,7 @@ jtdd_dip u_dip(
 jtdd_main u_main(
     .clk            ( clk           ),
     .rst            ( rst_game      ),
-    .cen6           ( cen6          ),
+    .cen12          ( cen12         ),
     .cpu_cen        ( cpu_cen       ),
     .VBL            ( VBL           ),
     .IMS            ( IMS           ), // =VPOS[3]
@@ -337,6 +338,7 @@ jtdd_video u_video(
     .pxl_cen      (  pxl_cen         ),
     .pxl_cenb     (  pxl_cenb        ),
     .cen12        (  cen12           ),
+    .cen_Q        (  cpu_cen         ),
     .dip_pause    (  dip_pause       ),
     .cpu_AB       (  cpu_AB          ),
     .pal_cs       (  pal_cs          ),
@@ -345,7 +347,6 @@ jtdd_video u_video(
     .obj_cs       (  obj_cs          ),
     .cpu_wrn      (  cpu_wrn         ),
     .cpu_dout     (  cpu_dout        ),
-    .cen_Q        (  cpu_cen         ),
     .char_dout    (  char_dout       ),
     .scr_dout     (  scr_dout        ),
     .obj_dout     (  obj_dout        ),
@@ -455,7 +456,7 @@ jtframe_rom #(
     .slot7_ok    ( main_ok       ),
     .slot8_ok    ( obj_ok        ),
 
-    .slot0_addr  ( char_addr     ),
+    .slot0_addr  ( char_addr[14:0] ),
     .slot1_addr  ( scr_addr      ),
     .slot2_addr  ( adpcm0_addr   ),
     .slot3_addr  ( adpcm1_addr   ),

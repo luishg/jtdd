@@ -78,5 +78,6 @@ echo // objects
 
 # Not in SDRAM:
 echo // FPGA BRAM:
-dump "localparam PROM_ADDR" prom.16
+# Priority PROM is taken from Double Dragon 1, MAME set is missing this prom in ddragon2.zip
+dump "localparam PROM_ADDR" 21j-k-0 prom.16
 echo // ROM length $(rom_len)

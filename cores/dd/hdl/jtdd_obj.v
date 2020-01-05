@@ -38,7 +38,7 @@ module jtdd_obj(
     input              flip,
     input              HBL,
     // ROM access
-    output reg [17:0]  rom_addr,
+    output reg [18:0]  rom_addr,
     input      [15:0]  rom_data,
     input              rom_ok,
     output reg [ 7:0]  obj_pxl
@@ -172,7 +172,13 @@ reg  [15:0] shift;
 reg         copying;
 wire        hflip = ~scan_attr[3];
 wire        vflip = scan_attr[2];
+`ifdef DD2
+wire [ 4:0] id_top= scan_attr2[4:0];
+wire [ 3:0] pal   = {1'b0, scan_attr2[7:5]};
+`else
+wire [ 4:0] id_top= {1'b0, scan_attr2[3:0]};
 wire [ 3:0] pal   = scan_attr2[7:4];
+`endif
 wire [ 3:0] col   = hflip ? shift[15:12] : shift[3:0];
 reg         ok_dly;
 reg  [ 3:0] wait_buf;
@@ -181,6 +187,7 @@ always @(posedge clk) begin
     wait_buf[0]   <= pxl_cen;
     wait_buf[3:1] <= wait_buf[2:0];
 end
+
 
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
@@ -197,7 +204,7 @@ always @(posedge clk, posedge rst) begin
             pxl_cnt <= 4'd0;
             posx    <= { scan_attr[1], scan_x };
             ok_dly  <= 1'b0;
-            rom_addr  <= { scan_attr2[3:0], scan_id, scan_y[3:0]^{4{vflip}}, 
+            rom_addr  <= { id_top, scan_id, scan_y[3:0]^{4{vflip}}, 
                 2'b00^{2{hflip}} };
         end
         if( copying ) begin

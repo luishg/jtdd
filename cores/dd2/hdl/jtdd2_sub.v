@@ -31,11 +31,11 @@ module jtdd2_sub(
     input      [ 7:0]  main_dout,
     output     [ 7:0]  shared_dout,
     // CPU Interface
-    input              com_cs,
-    output             mcu_ban,
-    input              mcu_nmi_set,
-    input              mcu_halt,
-    output  reg        mcu_irqmain,
+(*keep*)    input              com_cs,
+(*keep*)    output             mcu_ban,
+(*keep*)    input              mcu_halt,
+(*keep*)    input              mcu_nmi_set,
+(*keep*)    output  reg        mcu_irqmain,
     // ROM interface
     output     [15:0]  rom_addr,
     input      [ 7:0]  rom_data,
@@ -44,18 +44,13 @@ module jtdd2_sub(
 
 );
 
-wire        vma;
-reg         port_cs, ram_cs, shared_cs;
-
-wire        rnw;
+reg         ram_cs, shared_cs, nmi_ack;
+wire        rnw, int_n, mreq_n;
 wire [15:0] A;
 wire [ 7:0] cpu_dout;
 reg  [ 7:0] cpu_din;
-
-assign  mcu_ban = vma;
-
-wire       int_n, mreq_n;
-reg        irq_clr;
+//wire halted = ~mcu_ban;
+assign mcu_ban = 1'b0;
 
 jtframe_ff u_nmi(
     .clk     (   clk          ),
@@ -63,7 +58,7 @@ jtframe_ff u_nmi(
     .cen     (   1'b1         ),
     .sigedge (   mcu_nmi_set  ),
     .din     (   1'b1         ),
-    .clr     (   irq_clr      ),
+    .clr     (   nmi_ack      ),
     .set     (   1'b0         ),
     .q       (                ),
     .qn      (   int_n        )
@@ -77,15 +72,15 @@ always @(*) begin
     rom_cs      = 1'b0;
     shared_cs   = 1'b0;
     mcu_irqmain = 1'b0;
-    irq_clr     = 1'b0;
+    nmi_ack     = 1'b0;
     if( !mreq_n ) begin
-        if( A[15:14]==2'b00 )
+        if( A[15:14]!=2'b11 )
             rom_cs    = 1'b1; // < Cxxx
         else begin
             case( A[13:12])
-                2'b00: shared_cs   = 1'b1;
-                2'b01: mcu_irqmain = 1'b1;
-                2'b10: irq_clr     = 1'b1;
+                2'b00: shared_cs   = 1'b1; // C
+                2'b01: nmi_ack     = 1'b1; // D
+                2'b10: mcu_irqmain = 1'b1; // E
                 default:;
             endcase
         end
@@ -103,23 +98,21 @@ always @(*) begin
     endcase
 end
 
-wire halted;
-
 jtframe_z80_wait u_sub(
     .rst_n      ( ~rst          ),
     .clk        ( clk           ),
     .cen        ( cen4          ),
-    .int_n      ( int_n         ),
-    .nmi_n      ( 1'b1          ),
-    .busrq_n    ( 1'b1          ),
+    .int_n      ( 1'b1          ),
+    .nmi_n      ( int_n         ),
+    .busrq_n    ( ~mcu_halt     ),
     .m1_n       (               ),
     .mreq_n     ( mreq_n        ),
     .iorq_n     (               ),
     .rd_n       (               ),
-    .wr_n       (               ),
+    .wr_n       ( rnw           ),
     .rfsh_n     (               ),
     .halt_n     (               ),
-    .busak_n    (               ),
+    .busak_n    ( mcu_ban       ),
     .A          ( A             ),
     .din        ( cpu_din       ),
     .dout       ( cpu_dout      ),
@@ -139,7 +132,7 @@ jtframe_dual_ram #(.aw(10)) u_shared(
     
     .data1  ( main_dout    ),
     .addr1  ( main_AB[9:0] ),
-    .we1    ( ~main_wrn & com_cs /*& halted*/),
+    .we1    ( ~main_wrn & com_cs & halted ),
     .q1     ( shared_dout )
 );
 
