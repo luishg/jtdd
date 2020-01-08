@@ -126,8 +126,13 @@ always @(posedge clk, posedge rst) begin
             end
             5: begin
                 scan_x  <= obj_dout; // +4
+                `ifdef DD2
+                if( scan_attr[5:4]!=2'b00 )
+                    scan_id[1:0] <= scan_id[1:0] + {1'b0, scan_y[4] };
+                `else
                 if( scan_attr[4])
                     scan_id[0] <= scan_id[0]^scan_y[4];
+                `endif
                 state   <= 6;
                 copy    <= 1'b1;
             end

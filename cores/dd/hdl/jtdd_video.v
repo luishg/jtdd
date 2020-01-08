@@ -98,6 +98,7 @@ jtdd_timing u_timing(
 
 assign H8 = HPOS[3];
 
+`ifndef NOCHAR
 jtdd_char u_char(
     .clk         ( clk              ),
     .rst         ( rst              ),
@@ -117,7 +118,12 @@ jtdd_char u_char(
     .rom_ok      ( char_ok          ),
     .char_pxl    ( char_pxl         )
 );
+`else 
+assign char_addr = 16'd0;
+assign char_pxl  = 7'd0;
+`endif
 
+`ifndef NOSCROLL
 jtdd_scroll u_scroll(
     .clk         ( clk              ),
     .rst         ( rst              ),
@@ -139,6 +145,10 @@ jtdd_scroll u_scroll(
     .rom_ok      ( scr_ok           ),
     .scr_pxl     ( scr_pxl          )
 );
+`else 
+assign scr_addr = 17'd0;
+assign scr_pxl = 8'd0;
+`endif
 
 jtdd_obj u_obj(
     .clk         ( clk              ),

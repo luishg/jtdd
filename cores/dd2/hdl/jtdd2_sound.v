@@ -38,15 +38,11 @@ module jtdd2_sound(
     input   [ 7:0]  rom_data,
     input           rom_ok,
 
-    output  [16:0]  adpcm0_addr,
-    output          adpcm0_cs,
-    input   [ 7:0]  adpcm0_data,
-    input           adpcm0_ok,
+    output  [17:0]  adpcm_addr,
+    output          adpcm_cs,
+    input   [ 7:0]  adpcm_data,
+    input           adpcm_ok,
 
-    output  [16:0]  adpcm1_addr,
-    output          adpcm1_cs,
-    input   [ 7:0]  adpcm1_data,
-    input           adpcm1_ok,
     // Sound output
     output reg signed [15:0] sound,
     output                   sample    
@@ -57,23 +53,23 @@ assign adpcm1_cs = 1'b0;
 assign adpcm0_addr = 17'd0;
 assign adpcm1_addr = 17'd0;
 
-wire [ 7:0] cpu_dout, ram_dout, fm_dout;
+wire [ 7:0] cpu_dout, ram_dout, fm_dout, adpcm_dout;
 wire [15:0] A;
 reg  [ 7:0] cpu_din;
 wire        wr_n, int_n, nmi_n;
-wire signed [11:0] adpcm0_snd;
+wire signed [13:0] adpcm_snd;
 wire signed [15:0] fm_left, fm_right;
 reg  signed [15:0] snd_pre;
 reg ram_cs, latch_cs, oki_cs, fm_cs;
-
+wire adpcm_wrn = oki_cs & ~wr_n;
 assign rom_addr = A[14:0];
 
-wire signed [15:0] ext0 = { {1{adpcm0_snd[11]}}, adpcm0_snd, 3'b0 };
-wire cen_fm, cen_fm2;
+wire signed [15:0] adpcm_ext  = { adpcm_snd[13], adpcm_snd , 1'b0 };
+wire cen_fm, cen_fm2, adpcm_cen;
 
 always @(posedge clk) begin
-    // snd_pre  <= fm_left + ext0 + ext1;
-    sound  <= fm_left; // + ext0;
+    // snd_pre  <= fm_left + adpcm_ext  + ext1;
+    sound  <= fm_left + adpcm_ext ;
 end
 
 // Adds a little bit of gain, a x2 factor would be too much
@@ -171,6 +167,14 @@ jtframe_cen3p57 u_fmcen(
     .cen_1p78   (  cen_fm2   )
 );
 
+jtframe_frac_cen u_adpcm_cen(
+    .clk        (  clk       ),       // 48 MHz
+    .n          ( 10'd11     ),
+    .m          ( 10'd500    ),
+    .cen        ( adpcm_cen  ),
+    .cenb       (            )
+);
+
 jt51 u_jt51(
     .rst        ( rst       ), // reset
     .clk        ( clk       ), // main clock
@@ -194,6 +198,25 @@ jt51 u_jt51(
     // unsigned outputs for sigma delta converters, full resolution
     .dacleft    (           ),
     .dacright   (           )
+);
+
+assign adpcm_cs = 1'b1;
+
+jt6295 u_adpcm(
+    .rst        ( rst       ),
+    .clk        ( clk       ),
+    .cen        ( adpcm_cen ),
+    .ss         ( 1'b1      ),
+    // CPU interface
+    .wrn        ( adpcm_wrn ),  // active low
+    .din        ( cpu_din   ),
+    .dout       ( adpcm_dout),
+    // ROM interface
+    .rom_addr   ( adpcm_addr),
+    .rom_data   ( adpcm_data),
+    .rom_ok     ( adpcm_ok  ),
+    // Sound output
+    .sound      ( adpcm_snd )
 );
 
 endmodule

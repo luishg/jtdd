@@ -84,15 +84,15 @@ wire               flip;
 // ROM access
 wire       [15:0]  char_addr;
 wire       [14:0]  snd_addr;
-wire       [16:0]  adpcm0_addr, adpcm1_addr;
-wire       [ 7:0]  char_data, adpcm0_data, adpcm1_data;
+wire       [17:0]  adpcm_addr;
+wire       [ 7:0]  char_data, adpcm_data;
 wire       [16:0]  scr_addr;
 wire       [18:0]  obj_addr;
 wire       [15:0]  scr_data, obj_data;
 wire               char_ok, scr_ok, obj_ok, main_ok, snd_ok;
-wire               adpcm0_ok, adpcm1_ok;
+wire               adpcm_ok;
 wire       [17:0]  main_addr;
-wire               main_cs, snd_cs, adpcm0_cs, adpcm1_cs;
+wire               main_cs, snd_cs, adpcm_cs;
 wire       [ 7:0]  main_data, snd_data;
 wire       [15:0]  mcu_addr;
 wire       [ 7:0]  mcu_data;
@@ -344,29 +344,23 @@ jtdd2_sound u_sound(
     .rom_data    ( snd_data      ),
     .rom_ok      ( snd_ok        ),
 
-    .adpcm0_addr ( adpcm0_addr   ),
-    .adpcm0_cs   ( adpcm0_cs     ),
-    .adpcm0_data ( adpcm0_data   ),
-    .adpcm0_ok   ( adpcm0_ok     ),
+    .adpcm_addr  ( adpcm_addr    ),
+    .adpcm_cs    ( adpcm_cs      ),
+    .adpcm_data  ( adpcm_data    ),
+    .adpcm_ok    ( adpcm_ok      ),
 
-    .adpcm1_addr ( adpcm1_addr   ),
-    .adpcm1_cs   ( adpcm1_cs     ),
-    .adpcm1_data ( adpcm1_data   ),
-    .adpcm1_ok   ( adpcm1_ok     ),
     // Sound output
     .sound       ( snd           ),
     .sample      ( sample        )    
 );
 `else
-assign sample   = 1'b0;
-assign snd_left = 16'd0;
-assign snd_right= 16'd0;
-assign snd_cs   = 1'b0;
-assign snd_addr = 15'd0;
-assign adpcm0_cs= 1'b0;
-assign adpcm1_cs= 1'b0;
-assign adpcm0_addr = 17'd0;
-assign adpcm1_addr = 17'd0;
+assign sample     = 1'b0;
+assign snd_left   = 16'd0;
+assign snd_right  = 16'd0;
+assign snd_cs     = 1'b0;
+assign snd_addr   = 15'd0;
+assign adpcm_cs   = 1'b0;
+assign adpcm_addr = 18'd0;
 `endif
 
 jtdd_video u_video(
@@ -435,13 +429,9 @@ jtframe_rom #(
     .SLOT1_DW    ( 16              ),
     .SLOT1_OFFSET( SCR_ADDR        ),
 
-    .SLOT2_AW    ( 17              ),   // ADPCM 0
+    .SLOT2_AW    ( 18              ),   // ADPCM 0
     .SLOT2_DW    (  8              ),
     .SLOT2_OFFSET( ADPCM_0>>1      ),
-
-    .SLOT3_AW    ( 17              ),   // ADPCM 1
-    .SLOT3_DW    (  8              ),
-    .SLOT3_OFFSET( ADPCM_1>>1      ),
 
     .SLOT5_AW    ( 16              ),   // SUB
     .SLOT5_DW    (  8              ),
@@ -465,8 +455,8 @@ jtframe_rom #(
 
     .slot0_cs    ( ~VBL          ),
     .slot1_cs    ( ~VBL          ),
-    .slot2_cs    ( adpcm0_cs     ), // ADPCM 0
-    .slot3_cs    ( adpcm1_cs     ), // ADPCM 1
+    .slot2_cs    ( adpcm_cs      ), // ADPCM 0
+    .slot3_cs    ( 1'b0          ), // ADPCM 1
     .slot4_cs    ( 1'b0          ), // unused
     .slot5_cs    ( mcu_cs        ),
     .slot6_cs    ( snd_cs        ),
@@ -475,8 +465,7 @@ jtframe_rom #(
 
     .slot0_ok    ( char_ok       ),
     .slot1_ok    ( scr_ok        ),
-    .slot2_ok    ( adpcm0_ok     ),
-    .slot3_ok    ( adpcm1_ok     ),
+    .slot2_ok    ( adpcm_ok      ),
     .slot5_ok    ( mcu_ok        ),
     .slot6_ok    ( snd_ok        ),
     .slot7_ok    ( main_ok       ),
@@ -484,8 +473,7 @@ jtframe_rom #(
 
     .slot0_addr  ( char_addr     ),
     .slot1_addr  ( scr_addr      ),
-    .slot2_addr  ( adpcm0_addr   ),
-    .slot3_addr  ( adpcm1_addr   ),
+    .slot2_addr  ( adpcm_addr    ),
     .slot5_addr  ( mcu_addr      ),
     .slot6_addr  ( snd_addr      ),
     .slot7_addr  ( main_addr     ),
@@ -493,8 +481,7 @@ jtframe_rom #(
 
     .slot0_dout  ( char_data     ),
     .slot1_dout  ( scr_data      ),
-    .slot2_dout  ( adpcm0_data   ),
-    .slot3_dout  ( adpcm1_data   ),
+    .slot2_dout  ( adpcm_data    ),
     .slot5_dout  ( mcu_data      ),
     .slot6_dout  ( snd_data      ),
     .slot7_dout  ( main_data     ),
