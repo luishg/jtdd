@@ -64,7 +64,7 @@ reg ram_cs, latch_cs, oki_cs, fm_cs;
 wire adpcm_wrn = oki_cs & ~wr_n;
 assign rom_addr = A[14:0];
 
-wire signed [15:0] adpcm_ext  = { adpcm_snd[13], adpcm_snd , 1'b0 };
+wire signed [15:0] adpcm_ext  = { adpcm_snd , 2'b0 };
 wire cen_fm, cen_fm2, adpcm_cen;
 
 always @(posedge clk) begin
