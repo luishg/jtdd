@@ -60,7 +60,7 @@ wire        wr_n, int_n, nmi_n;
 wire signed [13:0] adpcm_snd;
 wire signed [15:0] fm_left, fm_right;
 reg  signed [15:0] snd_pre;
-reg ram_cs, latch_cs, oki_cs, fm_cs;
+reg ram_cs, latch_cs, oki_cs, fm_cs, mreq_n;
 wire adpcm_wrn = oki_cs & ~wr_n;
 assign rom_addr = A[14:0];
 
@@ -156,11 +156,13 @@ jtframe_cen3p57 u_fmcen(
     .cen_1p78   (  cen_fm2   )
 );
 
+wire nc;
+
 jtframe_frac_cen u_cen_oki(
     .clk        (  clk       ),       // 48 MHz
     .n          ( 10'd11     ),
     .m          ( 10'd500    ),
-    .cen        ( cen_oki    ),
+    .cen        ( {nc, cen_oki}    ),
     .cenb       (            )
 );
 
