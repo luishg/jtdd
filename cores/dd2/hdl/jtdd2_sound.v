@@ -156,11 +156,13 @@ jtframe_cen3p57 u_fmcen(
     .cen_1p78   (  cen_fm2   )
 );
 
+wire nc;
+
 jtframe_frac_cen u_cen_oki(
     .clk        (  clk       ),       // 48 MHz
     .n          ( 10'd11     ),
     .m          ( 10'd500    ),
-    .cen        ( cen_oki    ),
+    .cen        ( {nc, cen_oki}    ),
     .cenb       (            )
 );
 

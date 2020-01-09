@@ -1,3 +1,3 @@
 #!/bin/bash
 
-go.sh -d NOMAIN -d NOVIDEO -d NOMCU -d NOVIDEO -deep $*
+go.sh -d NOMAIN -d NOVIDEO -d NOMCU -deep $*
