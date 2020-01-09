@@ -53,7 +53,7 @@ assign adpcm1_cs = 1'b0;
 assign adpcm0_addr = 17'd0;
 assign adpcm1_addr = 17'd0;
 
-wire [ 7:0] cpu_dout, ram_dout, fm_dout, adpcm_dout;
+wire [ 7:0] cpu_dout, ram_dout, fm_dout, oki_dout;
 wire [15:0] A;
 reg  [ 7:0] cpu_din;
 wire        wr_n, int_n, nmi_n;
@@ -61,7 +61,7 @@ wire signed [13:0] adpcm_snd;
 wire signed [15:0] fm_left, fm_right;
 reg  signed [15:0] snd_pre;
 reg ram_cs, latch_cs, oki_cs, fm_cs;
-wire adpcm_wrn = oki_cs & ~wr_n;
+wire oki_wrn = oki_cs & ~wr_n;
 assign rom_addr = A[14:0];
 
 wire signed [15:0] adpcm_ext  = { adpcm_snd , 2'b0 };
@@ -69,7 +69,7 @@ wire cen_fm, cen_fm2, cen_oki;
 
 always @(posedge clk) begin
     // snd_pre  <= fm_left + adpcm_ext  + ext1;
-    sound  <= fm_left + adpcm_ext ;
+    sound  <= (fm_left>>>1) + adpcm_ext ;
 end
 
 // Adds a little bit of gain, a x2 factor would be too much
@@ -109,7 +109,7 @@ always @(*) begin
         ram_cs:   cpu_din = ram_dout;
         latch_cs: cpu_din = snd_latch;
         fm_cs:    cpu_din = fm_dout;
-        //ad_cs:    cpu_din = {~6'h0, adpcm1_cs, adpcm0_cs};
+        oki_cs:   cpu_din = oki_dout;
     endcase
 end
 
@@ -197,9 +197,9 @@ jt6295 u_adpcm(
     .cen        ( cen_oki   ),
     .ss         ( 1'b1      ),
     // CPU interface
-    .wrn        ( adpcm_wrn ),  // active low
-    .din        ( cpu_din   ),
-    .dout       ( adpcm_dout),
+    .wrn        ( oki_wrn   ),  // active low
+    .din        ( cpu_dout  ),
+    .dout       ( oki_dout  ),
     // ROM interface
     .rom_addr   ( adpcm_addr),
     .rom_data   ( adpcm_data),
