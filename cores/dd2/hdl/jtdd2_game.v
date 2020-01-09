@@ -286,9 +286,25 @@ assign cpu_AB    = 13'd0;
 assign cpu_wrn   = 1'b1;
 assign scrhpos   = 9'h0;
 assign scrvpos   = 9'h0;
-assign snd_latch = 8'd0;
-assign snd_irq   = 1'b0;
 assign snd_rstb  = 1'b0;
+
+    `ifndef SIMULATION
+    assign snd_latch = 8'd0;
+    assign snd_irq   = 1'b0;
+    `else
+    reg [7:0] snd_latch2;
+    reg       snd_irq2;
+    assign snd_latch = snd_latch2;
+    assign snd_irq   = snd_irq2;
+    initial begin
+        snd_latch2 = 8'hfe;
+        snd_irq2   = 1'b0;
+        #11_000_000 snd_latch2 = 8'h3a; // coin sound
+        snd_irq2 = 1'b1;
+        #100_000 snd_irq2 = 1'b0;
+        snd_latch2 = 8'hfe;
+    end
+    `endif
 `endif
 
 `ifndef NOMCU
@@ -363,6 +379,7 @@ assign adpcm_cs   = 1'b0;
 assign adpcm_addr = 18'd0;
 `endif
 
+`ifndef NOVIDEO
 jtdd_video u_video(
     .clk          (  clk             ),
     .rst          (  rst             ),
@@ -416,6 +433,14 @@ jtdd_video u_video(
     // Debug
     .gfx_en       (  gfx_en          )
 );
+`else 
+assign red   = 4'd0;
+assign blue  = 4'd0;
+assign green = 4'd0;
+assign char_addr = 16'd0;
+assign scr_addr  = 17'd0;
+assign obj_addr  = 19'd0;
+`endif
 
 localparam SCR_ADDR  = 22'h6_0000;
 localparam OBJ_ADDR  = 22'h8_0000;

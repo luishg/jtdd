@@ -65,7 +65,7 @@ wire adpcm_wrn = oki_cs & ~wr_n;
 assign rom_addr = A[14:0];
 
 wire signed [15:0] adpcm_ext  = { adpcm_snd , 2'b0 };
-wire cen_fm, cen_fm2, adpcm_cen;
+wire cen_fm, cen_fm2, cen_oki;
 
 always @(posedge clk) begin
     // snd_pre  <= fm_left + adpcm_ext  + ext1;
@@ -113,17 +113,6 @@ always @(*) begin
     endcase
 end
 
-reg cen_oki, last_H8, H8_edge;
-
-always @(posedge clk) begin
-    last_H8 <= H8;
-    H8_edge <= H8 && !last_H8;
-end
-
-always @(posedge clk) begin
-    cen_oki <= H8_edge;
-end
-
 jtframe_ff u_ff(
     .clk      ( clk         ),
     .rst      ( rst         ),
@@ -167,11 +156,11 @@ jtframe_cen3p57 u_fmcen(
     .cen_1p78   (  cen_fm2   )
 );
 
-jtframe_frac_cen u_adpcm_cen(
+jtframe_frac_cen u_cen_oki(
     .clk        (  clk       ),       // 48 MHz
     .n          ( 10'd11     ),
     .m          ( 10'd500    ),
-    .cen        ( adpcm_cen  ),
+    .cen        ( cen_oki    ),
     .cenb       (            )
 );
 
@@ -181,7 +170,7 @@ jt51 u_jt51(
     .cen        ( cen_fm    ),
     .cen_p1     ( cen_fm2   ),
     .cs_n       ( !fm_cs    ), // chip select
-    .wr_n       ( wr_n       ), // write
+    .wr_n       ( wr_n      ), // write
     .a0         ( A[0]      ),
     .din        ( cpu_dout  ), // data in
     .dout       ( fm_dout   ), // data out
@@ -205,7 +194,7 @@ assign adpcm_cs = 1'b1;
 jt6295 u_adpcm(
     .rst        ( rst       ),
     .clk        ( clk       ),
-    .cen        ( adpcm_cen ),
+    .cen        ( cen_oki   ),
     .ss         ( 1'b1      ),
     // CPU interface
     .wrn        ( adpcm_wrn ),  // active low
