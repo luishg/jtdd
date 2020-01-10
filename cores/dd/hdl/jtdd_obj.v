@@ -231,7 +231,7 @@ always @(posedge clk, posedge rst) begin
                         rom_data[12], rom_data[ 8], rom_data[4], rom_data[0] };
                 end
                 2'b1: begin
-                    rom_addr  <= { scan_attr2[3:0], scan_id, scan_y[3:0], 
+                    rom_addr  <= { id_top, scan_id, scan_y[3:0], 
                         cnt_msb_next^{2{hflip}} };
                 end
             endcase            
