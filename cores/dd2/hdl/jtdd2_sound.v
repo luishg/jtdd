@@ -66,6 +66,7 @@ assign rom_addr = A[14:0];
 
 wire signed [15:0] adpcm_ext  = { adpcm_snd , 2'b0 };
 wire cen_fm, cen_fm2, cen_oki;
+wire mreq_n;
 
 always @(posedge clk) begin
     // snd_pre  <= fm_left + adpcm_ext  + ext1;

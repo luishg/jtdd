@@ -25,7 +25,7 @@
 # CPU
 ../../../modules/jtframe/hdl/cpu/jtframe_sys6809.v
 ../../../modules/jtframe/hdl/cpu/jtframe_z80.v
-../../../modules/jtframe/hdl/cpu/jtframe_sysz80.v
+#../../../modules/jtframe/hdl/cpu/jtframe_sysz80.v
 # Other
 ../../../modules/jtframe/hdl/jtframe_ff.v
 ../../../modules/jtframe/hdl/jtframe_sh.v
