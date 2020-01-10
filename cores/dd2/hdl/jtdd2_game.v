@@ -179,8 +179,8 @@ jtframe_cen48 u_cen(
     .cen3qb  (  cen3qb   ), // 1/4 advanced with respect to cen3b
     .cen1p5  (  cen1p5   ),
     .cen12b  (  cen12b   ),
-    .cen6b   (  cen6b    )
-    .cen1p5b (           ),
+    .cen6b   (  cen6b    ),
+    .cen1p5b (           )
 );
 
 jtdd_prom_we #(
