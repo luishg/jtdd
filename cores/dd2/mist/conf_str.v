@@ -3,10 +3,11 @@
 //           abcdefghijklmnopqrstuv
 
 `define CORE_OSD \
-    "OGH,Difficulty,very hard, hard, easy, normal;", \
+    "OGH,Difficulty,very hard,easy,hard,normal;", \
     "OI,Demo music,OFF,ON;", \
-    "OJK,Bonus Life,40k/80k,20k,40k,30k/60k;", \
-    "OLM,Lives,infinite,4,3,2;",
+    "OJK,Timer,60,65,80,70;", \
+    "OLM,Lives,4,3,2,1;", \
+    "OO,Hurricane Kick,easy,normal;", \
     // "ON,Turbo,Off,On;",
 `define CORE_KEYMAP \
-    "J,Kick,Jump,Punch,1P Start,2P Start,Coin,Credits;",
+    "J,Left attack,Jump,Right attack,1P Start,2P Start,Coin,Credits;",

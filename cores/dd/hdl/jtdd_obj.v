@@ -263,6 +263,7 @@ always @(posedge clk, posedge rst) begin
             ln_data <= 8'h0;
             ln_addr[8:0] <= ln_addr[8:0] + 9'd1;
             ln_we   <= 1'b1;
+            obj_pxl <= 8'd0;
         end else begin
             ln_we        <= 1'b0;
 

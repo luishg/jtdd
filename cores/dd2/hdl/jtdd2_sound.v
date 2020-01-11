@@ -70,7 +70,7 @@ wire mreq_n;
 
 always @(posedge clk) begin
     // snd_pre  <= fm_left + adpcm_ext  + ext1;
-    sound  <= (fm_left>>>1) + adpcm_ext ;
+    sound  <= fm_left + adpcm_ext + (adpcm_ext>>>1);
 end
 
 // Adds a little bit of gain, a x2 factor would be too much

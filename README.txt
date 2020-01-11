@@ -14,6 +14,10 @@ I hope you will have as much fun with it as I had it while making it!
 Troubleshooting
 ===============
 
+Note that Double Dragon 1 and 2 are 57Hz games. Some screens do not support this refresh rate.
+ADPCM sounds with less treble than in MAME. Upon comparison with the arcade PCB, I think
+this is correct.
+
 * Please post any issues to the github page. Click on the issues tab.
 
 https://github.com/jotego/jtdd
@@ -99,8 +103,7 @@ For MiST and MiSTer: games can be controlled with both game pads and keyboard. T
 
     F7      Turn character layer on/off
     F8      Turn second background layer on/off
-    F9      Turn first  background layer on/off
-    F10     Turn object (sprite) layer on/off
+    F9      Turn object (sprite) layer on/off
 
 
 ROM Generation
