@@ -27,8 +27,8 @@ module jtdd_timing(
     output     [7:0]   HPOS, // HPOS in schematics
     output reg         VBL=1'b0,
     output reg         HBL=1'b0,
-    output reg         VS,
-    output reg         HS,
+    output reg         VS=1'b0,
+    output reg         HS=1'b0,
     output     [5:0]   M       // *M in schematics, *M represents ~M
 );
 
@@ -46,14 +46,21 @@ end
 assign M = m[5:0];
 assign HPOS = hn[7:0] ^ {8{flip}};
 
+wire [8:0] HS1 = 9'd245+((9'd383-9'd255)>>1);
+wire [8:0] HS0 = 9'd265+((9'd383-9'd255)>>1);
+
 always @(posedge clk) if(pxl_cen) begin
     // bus phases
     m  <= 8'd0;
     if( nextn[0] ) m[nextn[3:1]] <= 1'b1;
     // counters
     hn <= nextn;
-    HS <= hn==9'd255+((9'd383-9'd255)>>1); // middle of blanking
-    VS <= vn==8'hef && VBL;
+    //HS <= hn==9'd255+((9'd383-9'd255)>>1); // middle of blanking
+    if( hn==HS1 ) HS <= 1'b1;
+    if( hn==HS0 ) HS <= 1'b0;
+    //VS <= vn==8'hef && VBL;
+    if( vn==8'he9 && VBL ) VS <= 1'b1;
+    if( vn==8'hed && VBL ) VS <= 1'b0;
     if( hn == 9'd255 ) begin
         HBL <= 1'b1;
     end else if( hover )begin
