@@ -206,7 +206,8 @@ u_prom(
     .prog_data    ( prog_data       ),
     .prog_mask    ( prog_mask       ),
     .prog_we      ( prog_we         ),
-    .prom_we      ( prom_prio_we    )
+    .prom_we      ( prom_prio_we    ),
+    .sdram_ack    ( sdram_ack       )
 );
 
 jtdd_dip u_dip(
