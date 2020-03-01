@@ -36,7 +36,7 @@ module jtdd_prom_we(
     output reg [ 1:0]    prog_mask, // active low
     output reg           prog_we,
     output reg           prom_we,
-    input                sdram_clk
+    input                sdram_ack
 );
 
 parameter PW=1;
@@ -156,8 +156,8 @@ always @(posedge clk) begin
             `INFO_PROM
         end
     end
-    else if( sdram_clk || !downloading ) begin
-        prog_we  <= 1'b0;
+    else begin
+        if(sdram_ack || !downloading) prog_we  <= 1'b0;
         prom_we0 <= {PW{1'd0}};
     end
 end
