@@ -56,11 +56,13 @@ always @(posedge clk) if(pxl_cen) begin
     // counters
     hn <= nextn;
     //HS <= hn==9'd255+((9'd383-9'd255)>>1); // middle of blanking
-    if( hn==HS1 ) HS <= 1'b1;
+    if( hn==HS1 ) begin
+        HS <= 1'b1;
+        //VS <= vn==8'hef && VBL;
+        if( vn==8'he9 && VBL ) VS <= 1'b1;
+        if( vn==8'hed && VBL ) VS <= 1'b0;
+    end
     if( hn==HS0 ) HS <= 1'b0;
-    //VS <= vn==8'hef && VBL;
-    if( vn==8'he9 && VBL ) VS <= 1'b1;
-    if( vn==8'hed && VBL ) VS <= 1'b0;
     if( hn == 9'd255 ) begin
         HBL <= 1'b1;
     end else if( hover )begin
