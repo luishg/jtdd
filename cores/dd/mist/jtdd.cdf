@@ -4,7 +4,7 @@ JedecChain;
 	DefaultMfr(6E);
 
 	P ActionCode(Cfg)
-		Device PartName(EP3C25E144) Path("/home/jtejada/github/jtdd/mist/") File("jtdd.sof") MfrSpec(OpMask(1));
+		Device PartName(EP3C25E144) Path("/home/jtejada/repo/github/jtdd/cores/dd/mist/") File("jtdd.sof") MfrSpec(OpMask(1));
 
 ChainEnd;
 
