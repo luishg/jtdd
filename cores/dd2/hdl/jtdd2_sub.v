@@ -99,7 +99,7 @@ always @(*) begin
     endcase
 end
 
-jtframe_z80_wait u_sub(
+jtframe_z80_romwait u_sub(
     .rst_n      ( ~rst          ),
     .clk        ( clk           ),
     .cen        ( cen4          ),
