@@ -125,7 +125,7 @@ jtframe_cen48 u_cen(
     .cen12   (  pxl2_cen ),
     .cen8    (           ),
     .cen6    (  pxl_cen  ),
-    .cen4    (           ),
+    .cen4    (  cen4     ),
     .cen3    (  cen3     ),
     .cen3b   (  cen3b    ),
     .cen3q   (  cen3q    ), // 1/4 advanced with respect to cen3
@@ -140,9 +140,9 @@ jtframe_cen48 u_cen(
 // prevent timing error in 6809 CC bit Z
 jtframe_cen24 u_cen24(
     .clk     (  clk24    ),    // 48 MHz
-    .cen12   (  cen12    ),
-    .cen6    (  cen6     ),
-    .cen4    (  cen4     ),
+    //.cen12   (  cen12    ),
+    // .cen6    (  cen6     ),
+    // .cen4    (  cen4     ),
     .cen3    (           ),
     .cen3b   (           ),
     .cen3q   (           ), // 1/4 advanced with respect to cen3
@@ -152,6 +152,10 @@ jtframe_cen24 u_cen24(
     .cen6b   (           ),
     .cen1p5b (           )
 );
+
+assign cen12 = pxl2_cen;
+assign cen6 = pxl_cen;
+wire clk_alt = clk;
 
 jtdd_prom_we u_prom(
     .clk          ( clk             ),
@@ -180,7 +184,7 @@ jtdd_dip u_dip(
 
 `ifndef NOMAIN
 jtdd_main u_main(
-    .clk            ( clk24         ),
+    .clk            ( clk_alt       ),
     .rst            ( rst           ),
     .cen12          ( cen12         ),
     .cpu_cen        ( cpu_cen       ),
@@ -252,7 +256,7 @@ assign snd_rstb  = 1'b0;
 
 `ifndef NOMCU
 jtdd_mcu u_mcu(
-    .clk          (  clk24           ),
+    .clk          (  clk_alt         ),
     .rst          (  rst             ),
     .cen_Q        (  cpu_cen         ),
     .cen6         (  cen6            ),
