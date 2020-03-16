@@ -5,6 +5,7 @@ module jtframe_pll0(
     output   reg c1,      // 12
     output   reg c2,      // 96
     output       c3,     // 96 (shifted by -2.5ns)
+    output       c4,
     output   locked
 );
 
