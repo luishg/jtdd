@@ -75,7 +75,8 @@ jtdd_prom_we #(
     .prog_data   (  prog_data    ),
     .prog_mask   (  prog_mask    ),
     .prog_we     (  prog_we      ),
-    .prom_we     (  prom_we      )
+    .prom_we     (  prom_we      ),
+    .sdram_ack   (  1'b1         )
 );
 
 wire [15:0] sdram_dout = 16'habcd;

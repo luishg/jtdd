@@ -51,7 +51,7 @@ echo "Game ROM length: " $GAME_ROM_LEN
 ../../../modules/jtframe/bin/sim.sh $MIST -d GAME_ROM_LEN=$GAME_ROM_LEN \
     -sysname dd -modules ../../../modules -d SCANDOUBLER_DISABLE=1 \
     -videow 256 -videoh 240 \
-    -d JT51_NODEBUG \
+    -d JT51_NODEBUG -d JTFRAME_CLK24 \
     -d JT63701_SIMFILE=',.simfile("../../rom/21jm-0.ic55")' \
     $*
 

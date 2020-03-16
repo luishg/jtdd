@@ -17,6 +17,7 @@
 ../../../modules/jtframe/hdl/ram/jtframe_dual_ram.v
 # clocking
 ../../../modules/jtframe/hdl/clocking/jtframe_cen48.v
+../../../modules/jtframe/hdl/clocking/jtframe_cen24.v
 ../../../modules/jtframe/hdl/jtframe_z80wait.v
 # SDRAM
 ../../../modules/jtframe/hdl/sdram/jtframe_rom.v
@@ -26,4 +27,4 @@
 ../../../modules/jtframe/hdl/jtframe_ff.v
 ../../../modules/jtframe/hdl/jtframe_sh.v
 ../../../modules/jtframe/hdl/sound/jtframe_mixer.v
-../../../modules/jtframe/hdl/video/jtframe_charmsg.v
+../../../modules/jtframe/hdl/video/jtframe_credits.v
