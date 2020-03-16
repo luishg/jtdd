@@ -122,29 +122,6 @@ assign pxl_cen  = cen6;
 wire   pxl_cenb = cen6b;
 assign pxl2_cen = cen12;
 
-`ifdef MISTER
-
-reg rst_game;
-
-always @(negedge clk)
-    rst_game <= rst || !rom_ready;
-
-`else
-
-reg rst_game=1'b1;
-
-always @(posedge clk) begin : rstgame_gen
-    reg rst_aux;
-    if( rst || !rom_ready ) begin
-        {rst_game,rst_aux} <= 2'b11;
-    end
-    else begin
-        {rst_game,rst_aux} <= {rst_aux, downloading };
-    end
-end
-
-`endif
-
 jtframe_cen48 u_cen(
     .clk     (  clk      ),    // 48 MHz
     .cen12   (  cen12    ),
@@ -187,7 +164,7 @@ jtdd_dip u_dip(
 `ifndef NOMAIN
 jtdd_main u_main(
     .clk            ( clk           ),
-    .rst            ( rst_game      ),
+    .rst            ( rst           ),
     .cen12          ( cen12         ),
     .cpu_cen        ( cpu_cen       ),
     .VBL            ( VBL           ),
@@ -259,7 +236,7 @@ assign snd_rstb  = 1'b0;
 `ifndef NOMCU
 jtdd_mcu u_mcu(
     .clk          (  clk             ),
-    .rst          (  rst_game        ),
+    .rst          (  rst             ),
     .cen_Q        (  cpu_cen         ),
     .cen6         (  cen6            ),
     // CPU bus

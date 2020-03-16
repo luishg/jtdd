@@ -1,5 +1,5 @@
-JTDD FPGA Clone of Double Dragon arcade PCB by Jose Tejada (@topapate)
-=======================================================================
+JTDD FPGA Clone of Double Dragon 1/2 arcade PCBs by Jose Tejada (@topapate)
+===========================================================================
 
 You can show your appreciation through
     * Patreon: https://patreon.com/topapate
@@ -42,6 +42,7 @@ The FPGA clone uses the following modules:
 
 JT51:    For YM2151 sound synthesis. From the same author.
 JT5205:  For MSM5205 ADPCM sound synthesis. From the same author.
+JT6295:  For MSM6295 ADPCM sound synthesis. From the same author.
 JTFRAME: A common framework for MiST arcades. From the same author.
 MC6809:  from Greg Miller, slightly modified. Part of JTFRAME, the original can be found in github
 MC6801:  By Dukov, slightly modified. It is part of JTFRAME but the original can be found at
@@ -52,25 +53,32 @@ When populating the git, remember to use:
 git submodule init
 git submodule update
 
-To get the needed modules.
+To get the needed modules. If you update git, you may need to manually update the
+submodules commits like this:
+
+git pull
+git submodule update
 
 Compilation
 ===========
 
-I use linux as my development system. This means that I use many bash scripts, environment variables and symbolic links. I recommend using linux to compile the cores.
+I use linux as my development system. This means that I use many bash scripts, environment variables and symbolic links. I recommend using linux to compile the cores. You need to have the C++ compiler installed in linux.
 
-Start by sourcing the setprj.sh script directly from the JTDD directory in order to get the environment variables set. Now type
+Start by sourcing the setprj.sh script directly from the JTDD directory in order to get the environment variables set. Now type:
 
-jtdd
+jtcore dd
 
 That will compile the MiST version.
 
-jtdd -mr
+jtcore dd2 -mr
 
-will compile it for MiSTer.
+will compile Double Dragon 2 for MiSTer.
 
-once compilation is triggered, Quartus qpf and qsf files are created. This files are not
-part of the repository as they are considered output files, not input.
+once compilation is triggered, Quartus qpf and qsf files are created. These files are 
+not part of the repository as they are considered output files, not input.
+
+In the bin folder there is a script called jtupdate which compiles DD1 and DD2 for
+MiST, MiSTer and SiDi.
 
 HDL Code Structure
 ==================

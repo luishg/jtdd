@@ -16,6 +16,11 @@ else
     MRA=$ROM/mra
     MODULES=$JTROOT/modules
     JT51=$MODULES/jt51
+
+    echo Updating JTFRAME binary files
+    cd $JTFRAME/cc
+    make || exit 1
+    cd -
 fi
 
 function swcore {
