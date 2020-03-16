@@ -162,15 +162,13 @@ end
 `endif
 
 // Pixel signals all from 48MHz clock
-assign pxl_cen  = cen6;
-wire   pxl_cenb = cen6b;
-assign pxl2_cen = cen12;
+wire pxl_cenb;
 
 jtframe_cen48 u_cen(
     .clk     (  clk      ),    // 48 MHz
-    .cen12   (           ),
+    .cen12   (  pxl2_cen ),
     .cen8    (           ),
-    .cen6    (           ),
+    .cen6    (  pxl_cen  ),
     .cen4    (           ),
     .cen3    (  cen3     ),
     .cen3b   (  cen3b    ),
@@ -178,7 +176,7 @@ jtframe_cen48 u_cen(
     .cen3qb  (  cen3qb   ), // 1/4 advanced with respect to cen3b
     .cen1p5  (  cen1p5   ),
     .cen12b  (  cen12b   ),
-    .cen6b   (  cen6b    ),
+    .cen6b   (  pxl_cenb ),
     .cen1p5b (           )
 );
 

@@ -20,6 +20,7 @@
 
 module jtdd_game(
     input           clk,
+    input           clk24,
     input           rst,
     output          pxl2_cen,
     output          pxl_cen,
@@ -116,24 +117,40 @@ wire cen12, cen8, cen6, cen3, cen3q, cen1p5, cen12b, cen6b, cen3b, cen3qb;
 wire cpu_cen, turbo;
 wire rom_ready;
 
-assign cen_E    = cen3b;
-assign cen_Q    = cen3qb;
-assign pxl_cen  = cen6;
-wire   pxl_cenb = cen6b;
-assign pxl2_cen = cen12;
+// Pixel signals all from 48MHz clock
+wire pxl_cenb;
 
 jtframe_cen48 u_cen(
     .clk     (  clk      ),    // 48 MHz
-    .cen12   (  cen12    ),
-    .cen8    (  cen8     ),
-    .cen6    (  cen6     ),
+    .cen12   (  pxl2_cen ),
+    .cen8    (           ),
+    .cen6    (  pxl_cen  ),
+    .cen4    (           ),
     .cen3    (  cen3     ),
     .cen3b   (  cen3b    ),
     .cen3q   (  cen3q    ), // 1/4 advanced with respect to cen3
     .cen3qb  (  cen3qb   ), // 1/4 advanced with respect to cen3b
     .cen1p5  (  cen1p5   ),
     .cen12b  (  cen12b   ),
-    .cen6b   (  cen6b    )
+    .cen6b   (  pxl_cenb ),
+    .cen1p5b (           )
+);
+
+// CPU and sub CPU from slower clock in order to
+// prevent timing error in 6809 CC bit Z
+jtframe_cen24 u_cen24(
+    .clk     (  clk24    ),    // 48 MHz
+    .cen12   (  cen12    ),
+    .cen6    (  cen6     ),
+    .cen4    (  cen4     ),
+    .cen3    (           ),
+    .cen3b   (           ),
+    .cen3q   (           ), // 1/4 advanced with respect to cen3
+    .cen3qb  (           ), // 1/4 advanced with respect to cen3b
+    .cen1p5  (           ),
+    .cen12b  (           ),
+    .cen6b   (           ),
+    .cen1p5b (           )
 );
 
 jtdd_prom_we u_prom(
@@ -163,7 +180,7 @@ jtdd_dip u_dip(
 
 `ifndef NOMAIN
 jtdd_main u_main(
-    .clk            ( clk           ),
+    .clk            ( clk24         ),
     .rst            ( rst           ),
     .cen12          ( cen12         ),
     .cpu_cen        ( cpu_cen       ),
@@ -235,7 +252,7 @@ assign snd_rstb  = 1'b0;
 
 `ifndef NOMCU
 jtdd_mcu u_mcu(
-    .clk          (  clk             ),
+    .clk          (  clk24           ),
     .rst          (  rst             ),
     .cen_Q        (  cpu_cen         ),
     .cen6         (  cen6            ),
@@ -315,7 +332,6 @@ jtdd_video u_video(
     .rst          (  rst             ),
     .pxl_cen      (  pxl_cen         ),
     .pxl_cenb     (  pxl_cenb        ),
-    .cen12        (  cen12           ),
     .cen_Q        (  cpu_cen         ),
     .dip_pause    (  dip_pause       ),
     .cpu_AB       (  cpu_AB          ),

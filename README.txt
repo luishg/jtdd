@@ -80,6 +80,9 @@ not part of the repository as they are considered output files, not input.
 In the bin folder there is a script called jtupdate which compiles DD1 and DD2 for
 MiST, MiSTer and SiDi.
 
+IMPORTANT:
+Double Dragon 2 may halt if compilation does not meet timing. 
+
 HDL Code Structure
 ==================
 
