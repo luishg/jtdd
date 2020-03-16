@@ -20,6 +20,7 @@
 
 module jtdd2_game(
     input           clk,
+    input           clk24,
     input           rst,
     output          pxl2_cen,
     output          pxl_cen,
@@ -76,7 +77,6 @@ wire               pal_cs;
 wire               char_cs, scr_cs, obj_cs;
 wire               cpu_wrn;
 wire       [ 7:0]  cpu_dout;
-wire               cen_E, cen_Q;
 wire       [ 7:0]  char_dout, scr_dout, obj_dout, pal_dout;
 // video signals
 wire               VBL, HBL, IMS, H8;
@@ -115,12 +115,6 @@ assign dwnld_busy = downloading;
 wire cen12, cen8, cen6, cen4, cen3, cen3q, cen1p5, cen12b, cen6b, cen3b, cen3qb;
 wire cpu_cen, turbo;
 wire rom_ready;
-
-assign cen_E    = cen3b;
-assign cen_Q    = cen3qb;
-assign pxl_cen  = cen6;
-wire   pxl_cenb = cen6b;
-assign pxl2_cen = cen12;
 
 localparam BANK_ADDR   = 22'h00000;
 localparam MAIN_ADDR   = 22'h20000;
@@ -167,12 +161,17 @@ end
 
 `endif
 
+// Pixel signals all from 48MHz clock
+assign pxl_cen  = cen6;
+wire   pxl_cenb = cen6b;
+assign pxl2_cen = cen12;
+
 jtframe_cen48 u_cen(
     .clk     (  clk      ),    // 48 MHz
-    .cen12   (  cen12    ),
-    .cen8    (  cen8     ),
-    .cen6    (  cen6     ),
-    .cen4    (  cen4     ),
+    .cen12   (           ),
+    .cen8    (           ),
+    .cen6    (           ),
+    .cen4    (           ),
     .cen3    (  cen3     ),
     .cen3b   (  cen3b    ),
     .cen3q   (  cen3q    ), // 1/4 advanced with respect to cen3
@@ -180,6 +179,23 @@ jtframe_cen48 u_cen(
     .cen1p5  (  cen1p5   ),
     .cen12b  (  cen12b   ),
     .cen6b   (  cen6b    ),
+    .cen1p5b (           )
+);
+
+// CPU and sub CPU from slower clock in order to
+// prevent timing error in 6809 CC bit Z
+jtframe_cen24 u_cen24(
+    .clk     (  clk24    ),    // 48 MHz
+    .cen12   (  cen12    ),
+    .cen6    (           ),
+    .cen4    (  cen4     ),
+    .cen3    (           ),
+    .cen3b   (           ),
+    .cen3q   (           ), // 1/4 advanced with respect to cen3
+    .cen3qb  (           ), // 1/4 advanced with respect to cen3b
+    .cen1p5  (           ),
+    .cen12b  (           ),
+    .cen6b   (           ),
     .cen1p5b (           )
 );
 
@@ -223,7 +239,7 @@ jtdd_dip u_dip(
 
 `ifndef NOMAIN
 jtdd_main u_main(
-    .clk            ( clk           ),
+    .clk            ( clk24         ),  // slower clock to ease synthesis
     .rst            ( rst_game      ),
     .cen12          ( cen12         ),
     .cpu_cen        ( cpu_cen       ),
@@ -311,7 +327,7 @@ assign snd_rstb  = 1'b0;
 
 `ifndef NOMCU
 jtdd2_sub u_sub(
-    .clk          (  clk             ),
+    .clk          (  clk24           ), // slower clock
     .rst          (  rst_game        ),
     .cen4         (  cen4            ),
     // CPU bus
@@ -387,7 +403,6 @@ jtdd_video u_video(
     .rst          (  rst             ),
     .pxl_cen      (  pxl_cen         ),
     .pxl_cenb     (  pxl_cenb        ),
-    .cen12        (  cen12           ),
     .cen_Q        (  cpu_cen         ),
     .dip_pause    (  dip_pause       ),
     .cpu_AB       (  cpu_AB          ),

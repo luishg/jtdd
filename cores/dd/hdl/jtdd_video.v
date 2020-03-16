@@ -23,7 +23,6 @@ module jtdd_video(
     input              rst,
     input              pxl_cen,
     input              pxl_cenb,
-    input              cen12,
     input              dip_pause,
     // CPU bus
     input      [12:0]  cpu_AB,
