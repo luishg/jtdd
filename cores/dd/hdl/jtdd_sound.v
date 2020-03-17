@@ -114,7 +114,8 @@ always @(*) begin
     endcase
 end
 
-reg cen_oki, last_H8, H8_edge, cpu_cen;
+reg  cen_oki, last_H8, H8_edge;
+wire cpu_cen;
 
 always @(posedge clk) begin
     last_H8 <= H8;
@@ -129,7 +130,7 @@ wire ram_we = ram_cs & ~RnW;
 
 jtframe_ff u_ff(
     .clk      ( clk         ),
-    .rst      ( ~rst        ),
+    .rst      ( rst         ),
     .cen      ( 1'b1        ),
     .din      ( 1'b1        ),
     .q        (             ),

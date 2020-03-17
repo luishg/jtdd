@@ -113,7 +113,7 @@ wire       [ 8:0]  scrhpos, scrvpos;
 
 assign dwnld_busy = downloading;
 
-wire cen12, cen8, cen6, cen3, cen3q, cen1p5, cen12b, cen6b, cen3b, cen3qb;
+wire cen12, cen8, cen6, cen4, cen3, cen3q, cen1p5, cen12b, cen6b, cen3b, cen3qb;
 wire cpu_cen, turbo;
 wire rom_ready;
 
@@ -331,8 +331,7 @@ jtdd_sound u_sound(
 );
 `else
 assign sample   = 1'b0;
-assign snd_left = 16'd0;
-assign snd_right= 16'd0;
+assign snd      = 16'd0;
 assign snd_cs   = 1'b0;
 assign snd_addr = 15'd0;
 `endif

@@ -47,9 +47,6 @@ module jtdd_mcu(
 
 wire        vma;
 reg         port_cs, ram_cs, shared_cs;
-reg [8:0]   shared_addr;
-reg         shared_we;
-reg [7:0]   shared_data;
 
 wire        rnw;
 wire [15:0] A;
@@ -57,18 +54,6 @@ wire [ 7:0] mcu_dout;
 reg  [ 7:0] mcu_din;
 
 assign  mcu_ban = vma;
-
-always @(*) begin
-    if( vma ) begin
-        shared_addr = A[8:0];
-        shared_data = mcu_dout;
-        shared_we   = ~rnw & shared_cs;
-    end else begin
-        shared_addr = cpu_AB;
-        shared_data = cpu_dout;
-        shared_we   = ~cpu_wrn & com_cs;
-    end
-end
 
 reg  [7:0] p6_dout;
 wire       nmi;
@@ -144,12 +129,9 @@ reg  waitn;
 wire cpu_cen = cen6 & (waitn | ~mcu_rstb);
 
 always @(posedge clk) begin : cpu_clockenable
-    reg last_cs;
     if( !mcu_rstb ) begin
         waitn   <= 1'b1;
-        last_cs <= 1'b0;
     end else begin
-        last_cs <= rom_cs;
         if( rom_cs && !rom_ok ) waitn <= 1'b0;
         else if( rom_ok) waitn <= 1'b1;
     end
