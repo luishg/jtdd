@@ -303,10 +303,9 @@ jtframe_ram #(.aw(9)) u_shared(
 
 `ifndef NOSOUND
 jtdd_sound u_sound(
-    .clk         ( clk           ),
+    .clk         ( clk_alt       ),
     .rst         ( rst           ),
-    .cen_E       ( cen6          ),
-    .cen_Q       ( cen6b         ),
+    .cen12       ( cen12         ),
     .H8          ( H8            ),
     // communication with main CPU
     .snd_irq     ( snd_irq       ),

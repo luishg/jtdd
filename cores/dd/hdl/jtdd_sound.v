@@ -25,10 +25,9 @@
 `timescale 1ns/1ps
 
 module jtdd_sound(
-    input           clk,
+    input           clk,        // 24 MHz
     input           rst,
-    (* direct_enable *) input cen_E,
-    (* direct_enable *) input cen_Q,
+    input           cen12,
     input           H8,
     // communication with main CPU
     input           snd_irq,
@@ -115,9 +114,7 @@ always @(*) begin
     endcase
 end
 
-wire E,Q;
-reg cen_oki, last_H8, H8_edge;
-wire cpu_cen = Q;
+reg cen_oki, last_H8, H8_edge, cpu_cen;
 
 always @(posedge clk) begin
     last_H8 <= H8;
@@ -127,19 +124,6 @@ end
 always @(posedge clk) begin
     cen_oki <= H8_edge;
 end
-
-jtframe_dual_wait #(1) u_wait(
-    .rst_n      ( ~rst      ),
-    .clk        ( clk       ),
-    .cen_in     ( { cen_E, cen_Q }    ),
-    .cen_out    ( { E,Q          }    ),
-    .gate       (           ),
-    // manage access to shared memory
-    .dev_busy   ( 1'b0 ),
-    // manage access to ROM data from SDRAM
-    .rom_cs     ( rom_cs    ),
-    .rom_ok     ( rom_ok    )
-);
 
 wire ram_we = ram_cs & ~RnW;
 
@@ -155,41 +139,37 @@ jtframe_ff u_ff(
     .sigedge  ( snd_irq     ) // signal whose edge will trigger the FF
 );
 
-jtframe_ram #(.aw(11)) u_ram(
-    .clk    ( clk         ),
-    .cen    ( cpu_cen     ),
-    .data   ( cpu_dout    ),
-    .addr   ( A[10:0]     ),
-    .we     ( ram_we      ),
-    .q      ( ram_dout    )
+jtframe_sys6809 #(.RAM_AW(11)) u_cpu(
+    .rstn       ( ~rst      ), 
+    .clk        ( clk       ),
+    .cen        ( cen12     ),    // This is normally the input clock to the CPU
+    .cpu_cen    ( cpu_cen   ),   // 1/4th of cen -> 3MHz
+
+    // Interrupts
+    .nIRQ       ( irq_n     ),
+    .nFIRQ      ( firq_n    ),
+    .nNMI       ( 1'b1      ),
+    // Bus sharing
+    .bus_busy   ( 1'b0      ),
+    .waitn      (           ),
+    // memory interface
+    .A          ( A         ),
+    .RnW        ( RnW       ),
+    .ram_cs     ( ram_cs    ),
+    .rom_cs     ( rom_cs    ),
+    .rom_ok     ( rom_ok    ),
+    // Bus multiplexer is external
+    .ram_dout   ( ram_dout  ),
+    .cpu_dout   ( cpu_dout  ),
+    .cpu_din    ( cpu_din   )
 );
 
-mc6809i u_cpu(
-    .D       ( cpu_din  ),
-    .DOut    ( cpu_dout ),
-    .ADDR    ( A        ),
-    .RnW     ( RnW      ),
-    .clk     ( clk      ),
-    .cen_E   ( E        ),
-    .cen_Q   ( Q        ),
-    .BS      (          ),
-    .BA      (          ),
-    .nIRQ    ( irq_n    ),
-    .nFIRQ   ( firq_n   ),
-    .nNMI    ( 1'b1     ),
-    .AVMA    (          ),
-    .BUSY    (          ),
-    .LIC     (          ),
-    .nDMABREQ( 1'b1     ),
-    .nHALT   ( 1'b1     ),   
-    .nRESET  ( ~rst     ),
-    .RegData (          )
-);
-
-jtframe_cen3p57 u_fmcen(
-    .clk        (  clk       ),       // 48 MHz
-    .cen_3p57   (  cen_fm    ),
-    .cen_1p78   (  cen_fm2   )
+jtframe_frac_cen u_fmcen(
+    .clk        (  clk                ), // 24 MHz
+    .n          ( 10'd105             ),
+    .m          ( 10'd704             ),
+    .cen        ( { cen_fm2, cen_fm } ),
+    .cenb       (                     )
 );
 
 jt51 u_jt51(
@@ -220,7 +200,7 @@ jt51 u_jt51(
 jtdd_adpcm u_adpcm0(
     .clk        ( clk           ),
     .rst        ( rst           ),
-    .cpu_cen    ( cen_Q         ),
+    .cpu_cen    ( cpu_cen       ),
     .cen_oki    ( cen_oki       ),        // 375 kHz
     // communication with main CPU
     .cpu_dout   ( cpu_dout      ),
@@ -239,7 +219,7 @@ jtdd_adpcm u_adpcm0(
 jtdd_adpcm u_adpcm1(
     .clk        ( clk           ),
     .rst        ( rst           ),
-    .cpu_cen    ( cen_Q         ),
+    .cpu_cen    ( cpu_cen       ),
     .cen_oki    ( cen_oki       ),        // 375 kHz
     // communication with main CPU
     .cpu_dout   ( cpu_dout      ),
