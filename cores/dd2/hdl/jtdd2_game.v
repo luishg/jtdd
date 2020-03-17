@@ -98,7 +98,7 @@ wire       [15:0]  mcu_addr;
 wire       [ 7:0]  mcu_data;
 wire               mcu_cs, mcu_ok;
 // Sound
-wire               snd_rstb, snd_irq;
+wire               mcu_rstb, snd_irq;
 wire       [ 7:0]  snd_latch;
 // DIP
 wire       [ 7:0]  dipsw_a, dipsw_b;
@@ -255,7 +255,7 @@ jtdd_main u_main(
     .pal_dout       ( pal_dout      ),
     .flip           ( flip          ),
     // Sound
-    .snd_rstb       ( snd_rstb      ),
+    .mcu_rstb       ( mcu_rstb      ),
     .snd_irq        ( snd_irq       ),
     .snd_latch      ( snd_latch     ),
     // Characters
@@ -302,7 +302,7 @@ assign cpu_AB    = 13'd0;
 assign cpu_wrn   = 1'b1;
 assign scrhpos   = 9'h0;
 assign scrvpos   = 9'h0;
-assign snd_rstb  = 1'b0;
+assign mcu_rstb  = 1'b0;
 
     `ifndef SIMULATION
     assign snd_latch = 8'd0;
@@ -326,7 +326,7 @@ assign snd_rstb  = 1'b0;
 `ifndef NOMCU
 jtdd2_sub u_sub(
     .clk          (  clk24           ), // slower clock
-    .rst          (  rst_game        ),
+    .rstn         (  mcu_rstb        ),
     .cen4         (  cen4            ),
     // CPU bus
     .main_AB      (  cpu_AB[9:0]     ),
@@ -367,7 +367,7 @@ jtdd2_sound u_sound(
     .rst         ( rst           ),
     .H8          ( H8            ),
     // communication with main CPU
-    .snd_rstb    ( snd_rstb      ),
+    .snd_rstb    ( ~rst_game     ),
     .snd_irq     ( snd_irq       ),
     .snd_latch   ( snd_latch     ),
     // ROM

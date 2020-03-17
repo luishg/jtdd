@@ -23,7 +23,7 @@
 
 module jtdd2_sub(
     input              clk,
-    input              rst,
+    input              rstn,
     input              cen4,
     // CPU bus
     input      [ 9:0]  main_AB,
@@ -51,11 +51,11 @@ wire [ 7:0] cpu_dout;
 reg  [ 7:0] cpu_din;
 assign mcu_ban = busak_n;
 wire halted = ~mcu_ban;
-(*keep*) wire busrq_n = ~mcu_halt;
+(*keep*) wire busrq_n = mcu_halt;
 
 jtframe_ff u_nmi(
     .clk     (   clk          ),
-    .rst     (   rst          ),
+    .rst     (   ~rstn        ),
     .cen     (   1'b1         ),
     .sigedge (   mcu_nmi_set  ),
     .din     (   1'b1         ),
@@ -100,7 +100,7 @@ always @(*) begin
 end
 
 jtframe_z80_romwait u_sub(
-    .rst_n      ( ~rst          ),
+    .rst_n      ( rstn          ),
     .clk        ( clk           ),
     .cen        ( cen4          ),
     .int_n      ( 1'b1          ),

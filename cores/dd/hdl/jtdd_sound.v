@@ -31,7 +31,6 @@ module jtdd_sound(
     (* direct_enable *) input cen_Q,
     input           H8,
     // communication with main CPU
-    input           snd_rstb,
     input           snd_irq,
     input   [ 7:0]  snd_latch,
     // ROM
@@ -126,13 +125,11 @@ always @(posedge clk) begin
 end
 
 always @(posedge clk) begin
-    //E <= cen_E & (~rom_cs | rom_ok | ~snd_rstb);
-    //Q <= cen_Q & (~rom_cs | rom_ok | ~snd_rstb);
     cen_oki <= H8_edge;
 end
 
 jtframe_dual_wait #(1) u_wait(
-    .rst_n      ( snd_rstb  ),
+    .rst_n      ( ~rst      ),
     .clk        ( clk       ),
     .cen_in     ( { cen_E, cen_Q }    ),
     .cen_out    ( { E,Q          }    ),
@@ -148,7 +145,7 @@ wire ram_we = ram_cs & ~RnW;
 
 jtframe_ff u_ff(
     .clk      ( clk         ),
-    .rst      ( rst         ),
+    .rst      ( ~rst        ),
     .cen      ( 1'b1        ),
     .din      ( 1'b1        ),
     .q        (             ),
@@ -168,25 +165,25 @@ jtframe_ram #(.aw(11)) u_ram(
 );
 
 mc6809i u_cpu(
-    .D       ( cpu_din ),
-    .DOut    ( cpu_dout),
-    .ADDR    ( A       ),
-    .RnW     ( RnW     ),
-    .clk     ( clk     ),
-    .cen_E   ( E       ),
-    .cen_Q   ( Q       ),
-    .BS      (         ),
-    .BA      (         ),
-    .nIRQ    ( irq_n   ),
-    .nFIRQ   ( firq_n  ),
-    .nNMI    ( 1'b1    ),
-    .AVMA    (         ),
-    .BUSY    (         ),
-    .LIC     (         ),
-    .nDMABREQ( 1'b1    ),
-    .nHALT   ( 1'b1    ),   
-    .nRESET  ( snd_rstb),
-    .RegData (         )
+    .D       ( cpu_din  ),
+    .DOut    ( cpu_dout ),
+    .ADDR    ( A        ),
+    .RnW     ( RnW      ),
+    .clk     ( clk      ),
+    .cen_E   ( E        ),
+    .cen_Q   ( Q        ),
+    .BS      (          ),
+    .BA      (          ),
+    .nIRQ    ( irq_n    ),
+    .nFIRQ   ( firq_n   ),
+    .nNMI    ( 1'b1     ),
+    .AVMA    (          ),
+    .BUSY    (          ),
+    .LIC     (          ),
+    .nDMABREQ( 1'b1     ),
+    .nHALT   ( 1'b1     ),   
+    .nRESET  ( ~rst     ),
+    .RegData (          )
 );
 
 jtframe_cen3p57 u_fmcen(

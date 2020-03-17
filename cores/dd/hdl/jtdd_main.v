@@ -43,7 +43,7 @@ module jtdd_main(
     output  reg        flip,
     input       [7:0]  pal_dout,
     // Sound
-    output  reg        snd_rstb,
+    output  reg        mcu_rstb,
     output  reg        snd_irq,
     output  reg [7:0]  snd_latch,
     // Characters
@@ -164,7 +164,7 @@ always @(posedge clk or posedge rst) begin
         mcu_halt    <= 1'b0;
         scrhpos     <= 9'b0;
         scrvpos     <= 9'b0;
-        snd_rstb    <= 1'b0;
+        mcu_rstb    <= 1'b0;
     end else if(cpu_cen) begin
         snd_irq <= 1'b0;
         if( sndlatch_cs ) begin
@@ -177,8 +177,8 @@ always @(posedge clk or posedge rst) begin
             scrhpos[8] <= cpu_dout[0];
             scrvpos[8] <= cpu_dout[1];
             flip       <= cpu_dout[2];
-            snd_rstb   <= cpu_dout[3];
-            mcu_halt   <= cpu_dout[4];
+            mcu_rstb   <= cpu_dout[3];
+            mcu_halt   <= ~cpu_dout[4];
             bank       <= cpu_dout[7:5];
         end
     end

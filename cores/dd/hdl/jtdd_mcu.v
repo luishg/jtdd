@@ -23,7 +23,7 @@
 
 module jtdd_mcu(
     input              clk,
-    input              rst,
+    input              mcu_rstb,
     input              cen_Q,
     input              cen6,
     // CPU bus
@@ -78,7 +78,7 @@ assign mcu_irqmain =  p6_dout[1];
 
 jtframe_ff u_nmi(
     .clk     (   clk          ),
-    .rst     (   rst          ),
+    .rst     (   ~mcu_rstb    ),
     .cen     (   1'b1         ),
     .sigedge (   mcu_nmi_set  ),
     .din     (   1'b1         ),
@@ -107,8 +107,8 @@ end
 
 // Ports
 reg [7:0] port_map[0:31];
-always @(posedge clk, posedge rst) begin
-    if( rst ) begin
+always @(posedge clk ) begin
+    if( !mcu_rstb ) begin
         p6_dout <= 8'd0;
     end else begin
         port_map[A[4:0]] <= mcu_dout;
@@ -141,11 +141,11 @@ end
 
 // Clock enable
 reg  waitn;
-wire cpu_cen = cen6 & (waitn|rst);
+wire cpu_cen = cen6 & (waitn | ~mcu_rstb);
 
-always @(negedge clk,posedge rst) begin : cpu_clockenable
+always @(posedge clk) begin : cpu_clockenable
     reg last_cs;
-    if( rst ) begin
+    if( !mcu_rstb ) begin
         waitn   <= 1'b1;
         last_cs <= 1'b0;
     end else begin
@@ -158,7 +158,7 @@ end
 wire halted;
 
 m6801 u_6801(   
-    .rst        ( rst           ),
+    .rst        ( ~mcu_rstb     ),
     .clk        ( clk           ),
     .cen        ( cpu_cen       ),
     .rw         ( rnw           ),
@@ -176,15 +176,6 @@ m6801 u_6801(
     .irq_sci    ( 1'b0          )
 );
 
-/*
-jtframe_ram #(.aw(9)) u_shared(
-    .clk    ( clk         ),
-    .data   ( shared_data ),
-    .addr   ( shared_addr ),
-    .we     ( shared_we   ),
-    .q      ( shared_dout )
-);
-*/
 jtframe_dual_ram #(.aw(9)) u_shared(
     .clk0   ( clk         ),
     .clk1   ( clk         ),

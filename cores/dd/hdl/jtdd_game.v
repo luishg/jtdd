@@ -99,7 +99,7 @@ wire       [13:0]  mcu_addr;
 wire       [ 7:0]  mcu_data;
 wire               mcu_cs, mcu_ok;
 // Sound
-wire               snd_rstb, snd_irq;
+wire               mcu_rstb, snd_irq;
 wire       [ 7:0]  snd_latch;
 // DIP
 wire       [ 7:0]  dipsw_a, dipsw_b;
@@ -136,13 +136,15 @@ jtframe_cen48 u_cen(
     .cen1p5b (           )
 );
 
+wire alt12, alt6;
+
 // CPU and sub CPU from slower clock in order to
 // prevent timing error in 6809 CC bit Z
 jtframe_cen24 u_cen24(
     .clk     (  clk24    ),    // 48 MHz
-    //.cen12   (  cen12    ),
-    // .cen6    (  cen6     ),
-    // .cen4    (  cen4     ),
+    .cen12   (  alt12    ),
+    .cen6    (  alt6     ),
+    .cen4    (           ),
     .cen3    (           ),
     .cen3b   (           ),
     .cen3q   (           ), // 1/4 advanced with respect to cen3
@@ -153,9 +155,15 @@ jtframe_cen24 u_cen24(
     .cen1p5b (           )
 );
 
+`ifdef DD48
 assign cen12 = pxl2_cen;
 assign cen6 = pxl_cen;
 wire clk_alt = clk;
+`else 
+assign cen12 = alt12;
+assign cen6  = alt6;
+wire clk_alt = clk24;
+`endif
 
 jtdd_prom_we u_prom(
     .clk          ( clk             ),
@@ -202,7 +210,7 @@ jtdd_main u_main(
     .pal_dout       ( pal_dout      ),
     .flip           ( flip          ),
     // Sound
-    .snd_rstb       ( snd_rstb      ),
+    .mcu_rstb       ( mcu_rstb      ),
     .snd_irq        ( snd_irq       ),
     .snd_latch      ( snd_latch     ),
     // Characters
@@ -251,13 +259,13 @@ assign scrhpos   = 9'h0;
 assign scrvpos   = 9'h0;
 assign snd_latch = 8'd0;
 assign snd_irq   = 1'b0;
-assign snd_rstb  = 1'b0;
+assign mcu_rstb  = 1'b0;
 `endif
 
 `ifndef NOMCU
 jtdd_mcu u_mcu(
     .clk          (  clk_alt         ),
-    .rst          (  rst             ),
+    .mcu_rstb     (  mcu_rstb        ),
     .cen_Q        (  cpu_cen         ),
     .cen6         (  cen6            ),
     // CPU bus
@@ -301,7 +309,6 @@ jtdd_sound u_sound(
     .cen_Q       ( cen6b         ),
     .H8          ( H8            ),
     // communication with main CPU
-    .snd_rstb    ( snd_rstb      ),
     .snd_irq     ( snd_irq       ),
     .snd_latch   ( snd_latch     ),
     // ROM
