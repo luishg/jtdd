@@ -162,14 +162,14 @@ end
 `endif
 
 // Pixel signals all from 48MHz clock
-wire pxl_cenb;
+wire pxl_cenb, main4, alt4, alt12;
 
 jtframe_cen48 u_cen(
     .clk     (  clk      ),    // 48 MHz
     .cen12   (  pxl2_cen ),
     .cen8    (           ),
     .cen6    (  pxl_cen  ),
-    .cen4    (           ),
+    .cen4    (  main4    ),
     .cen3    (  cen3     ),
     .cen3b   (  cen3b    ),
     .cen3q   (  cen3q    ), // 1/4 advanced with respect to cen3
@@ -184,9 +184,9 @@ jtframe_cen48 u_cen(
 // prevent timing error in 6809 CC bit Z
 jtframe_cen24 u_cen24(
     .clk     (  clk24    ),    // 48 MHz
-    .cen12   (  cen12    ),
+    .cen12   (  alt12    ),
     .cen6    (           ),
-    .cen4    (  cen4     ),
+    .cen4    (  alt4     ),
     .cen3    (           ),
     .cen3b   (           ),
     .cen3q   (           ), // 1/4 advanced with respect to cen3
@@ -196,6 +196,16 @@ jtframe_cen24 u_cen24(
     .cen6b   (           ),
     .cen1p5b (           )
 );
+
+`ifdef DD48
+assign cen12 = pxl2_cen;
+assign cen4  = main4;
+wire clk_alt = clk;
+`else 
+assign cen12 = alt12;
+assign cen4  = alt4;
+wire clk_alt = clk24;
+`endif
 
 jtdd_prom_we #(
     .BANK_ADDR   ( BANK_ADDR    ),

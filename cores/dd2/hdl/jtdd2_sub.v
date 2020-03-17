@@ -51,7 +51,7 @@ wire [ 7:0] cpu_dout;
 reg  [ 7:0] cpu_din;
 assign mcu_ban = busak_n;
 wire halted = ~mcu_ban;
-(*keep*) wire busrq_n = mcu_halt;
+(*keep*) wire busrq_n = ~mcu_halt;
 
 jtframe_ff u_nmi(
     .clk     (   clk          ),

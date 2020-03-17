@@ -178,7 +178,7 @@ always @(posedge clk or posedge rst) begin
             scrvpos[8] <= cpu_dout[1];
             flip       <= cpu_dout[2];
             mcu_rstb   <= cpu_dout[3];
-            mcu_halt   <= ~cpu_dout[4];
+            mcu_halt   <= cpu_dout[4];
             bank       <= cpu_dout[7:5];
         end
     end
