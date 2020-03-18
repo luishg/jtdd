@@ -338,6 +338,7 @@ jtdd2_sub u_sub(
     .clk          (  clk24           ), // slower clock
     .rstn         (  mcu_rstb        ),
     .cen4         (  cen4            ),
+    .main_cen     (  cpu_cen         ),
     // CPU bus
     .main_AB      (  cpu_AB[8:0]     ),
     .main_wrn     (  cpu_wrn         ),

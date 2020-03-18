@@ -25,6 +25,7 @@ module jtdd2_sub(
     input              clk,
     input              rstn,
     input              cen4,
+    input              main_cen,
     // CPU bus
     input      [ 8:0]  main_AB,
     input              main_wrn,
@@ -122,19 +123,47 @@ jtframe_z80_romwait u_sub(
     .rom_ok     ( rom_ok        )
 );
 
-jtframe_dual_ram #(.aw(10)) u_shared(
+`ifdef SIMULATION
+reg last_mcu_halt;
+reg dump;
+
+always @(posedge clk) begin
+    last_mcu_halt <= mcu_halt;
+    dump <= mcu_halt != last_mcu_halt;
+end
+`endif
+
+reg last_main_wrn, last_com_cs;
+reg main_we, sub_we;
+reg [8:0] main_A_latch;
+
+always @(posedge clk) begin
+    last_main_wrn <= main_wrn;
+    last_com_cs   <= com_cs;
+    if( com_cs && !last_com_cs )  main_A_latch <= main_AB;
+    if( !main_wrn && last_main_wrn && com_cs && halted && main_cen )
+        main_we <= 1'b1;
+    else
+        main_we <= 1'b0;
+    sub_we <= ~rnw & shared_cs & cen4;
+end
+
+jtframe_dual_ram #(.aw(10),.dumpfile("sub.hex")) u_shared(
     .clk0   ( clk         ),
     .clk1   ( clk         ),
 
     .data0  ( cpu_dout    ),
     .addr0  ( A[9:0]      ),
-    .we0    ( ~rnw & shared_cs  ),
+    .we0    ( sub_we      ),
     .q0     ( sh2mcu_dout ),
     
     .data1  ( main_dout    ),
-    .addr1  ( {1'b0,main_AB[8:0]} ),
-    .we1    ( ~main_wrn & com_cs & halted ),
+    .addr1  ( {1'b0,main_A_latch} ),
+    .we1    ( main_we     ),
     .q1     ( shared_dout )
+    `ifdef SIMULATION
+    ,.dump   ( dump        )
+    `endif
 );
 
 `ifdef SIMULATION
