@@ -80,7 +80,7 @@ always @(*) begin
             rom_cs    = 1'b1; // < Cxxx
         else begin
             case( A[13:12])
-                2'b00: shared_cs   = 1'b1; // C
+                2'b00: if(A[11:10]==2'b0) shared_cs   = 1'b1; // C
                 2'b01: nmi_ack     = !rnw; // D
                 2'b10: mcu_irqmain = !rnw; // E
                 default:;

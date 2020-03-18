@@ -52,4 +52,5 @@ echo "Game ROM length: " $GAME_ROM_LEN
     -videow 256 -videoh 239 \
     -d JT51_NODEBUG -d JTFRAME_CLK24 -d DD2 \
     $*
-
+rm sub*.bin
+sub2bin
