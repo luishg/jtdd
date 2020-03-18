@@ -26,7 +26,7 @@ module jtdd2_sub(
     input              rstn,
     input              cen4,
     // CPU bus
-    input      [ 9:0]  main_AB,
+    input      [ 8:0]  main_AB,
     input              main_wrn,
     input      [ 7:0]  main_dout,
     output     [ 7:0]  shared_dout,
@@ -132,7 +132,7 @@ jtframe_dual_ram #(.aw(10)) u_shared(
     .q0     ( sh2mcu_dout ),
     
     .data1  ( main_dout    ),
-    .addr1  ( main_AB[9:0] ),
+    .addr1  ( {1'b0,main_AB[8:0]} ),
     .we1    ( ~main_wrn & com_cs & halted ),
     .q1     ( shared_dout )
 );

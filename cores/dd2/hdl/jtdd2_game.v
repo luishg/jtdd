@@ -339,7 +339,7 @@ jtdd2_sub u_sub(
     .rstn         (  mcu_rstb        ),
     .cen4         (  cen4            ),
     // CPU bus
-    .main_AB      (  cpu_AB[9:0]     ),
+    .main_AB      (  cpu_AB[8:0]     ),
     .main_wrn     (  cpu_wrn         ),
     .main_dout    (  cpu_dout        ),
     .shared_dout  (  mcu_ram         ),
