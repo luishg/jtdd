@@ -133,33 +133,34 @@ always @(posedge clk) begin
 end
 `endif
 
-reg last_main_wrn, last_com_cs;
-reg main_we, sub_we;
-reg [8:0] main_A_latch;
+reg [7:0] dinA, dinB;
+reg [9:0] addrA, addrB;
+reg       weA, weB;
 
-always @(posedge clk) begin
-    last_main_wrn <= main_wrn;
-    last_com_cs   <= com_cs;
-    if( com_cs && !last_com_cs )  main_A_latch <= main_AB;
-    if( !main_wrn && last_main_wrn && com_cs && halted && main_cen )
-        main_we <= 1'b1;
-    else
-        main_we <= 1'b0;
-    sub_we <= ~rnw & shared_cs & cen4;
+always @(posedge clk) if(cen4) begin
+    addrA <= A[9:0];
+    dinA  <= cpu_dout;
+    weA   <= ~rnw & shared_cs;
+end
+
+always @(posedge clk) if(main_cen) begin
+    addrB <= {1'b0,main_AB};
+    dinB  <= main_dout;
+    weB   <= !main_wrn && com_cs && halted;
 end
 
 jtframe_dual_ram #(.aw(10),.dumpfile("sub.hex")) u_shared(
     .clk0   ( clk         ),
     .clk1   ( clk         ),
 
-    .data0  ( cpu_dout    ),
-    .addr0  ( A[9:0]      ),
-    .we0    ( sub_we      ),
+    .data0  ( dinA        ),
+    .addr0  ( addrA       ),
+    .we0    ( weA         ),
     .q0     ( sh2mcu_dout ),
     
-    .data1  ( main_dout    ),
-    .addr1  ( {1'b0,main_A_latch} ),
-    .we1    ( main_we     ),
+    .data1  ( dinB        ),
+    .addr1  ( addrB       ),
+    .we1    ( weB         ),
     .q1     ( shared_dout )
     `ifdef SIMULATION
     ,.dump   ( dump        )
