@@ -9,4 +9,4 @@
     "OLM,Lives,infinite,4,3,2;",
     // "ON,Turbo,Off,On;",
 `define CORE_KEYMAP \
-    "J,Kick,Jump,Punch,1P Start,2P Start,Coin,Credits;",
+    "J,Kick,Jump,Punch,1P Start,Coin,Credits;",
