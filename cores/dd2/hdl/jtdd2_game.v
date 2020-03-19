@@ -204,7 +204,6 @@ wire clk_alt = clk;
 `else 
 assign cen12 = alt12;
 assign cen4  = alt4;
-//assign cen4 = alt12;
 wire clk_alt = clk24;
 `endif
 
