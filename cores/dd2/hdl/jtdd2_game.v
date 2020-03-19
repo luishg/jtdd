@@ -143,7 +143,7 @@ localparam [21:0] OBJ_SDRAM  = 22'h8_0000;
 reg rst_game;
 
 always @(negedge clk)
-    rst_game <= rst || !rom_ready;
+    rst_game <= rst || !rom_ready || downloading;
 
 `else
 
@@ -336,7 +336,8 @@ assign mcu_rstb  = 1'b0;
 `ifndef NOMCU
 jtdd2_sub u_sub(
     .clk          (  clk24           ), // slower clock
-    .rstn         (  mcu_rstb        ),
+    .rst          (  rst_game        ),
+    .mcu_rstb     (  mcu_rstb        ),
     .cen4         (  cen4            ),
     .main_cen     (  cpu_cen         ),
     // CPU bus

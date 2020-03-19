@@ -23,7 +23,8 @@
 
 module jtdd2_sub(
     input              clk,
-    input              rstn,
+    input              rst,
+    input              mcu_rstb,
     input              cen4,
     input              main_cen,
     // CPU bus
@@ -53,6 +54,19 @@ reg  [ 7:0] cpu_din;
 assign mcu_ban = busak_n;
 wire halted = ~mcu_ban;
 (*keep*) wire busrq_n = ~mcu_halt;
+
+reg rstn; // combined reset
+reg [3:0] rstcnt;
+
+always @(posedge clk) begin
+    if( rst || !mcu_rstb ) begin
+        rstn <= 1'b0;
+        rstcnt <= 4'hf;
+    end else if(cen4) begin
+        if( rstcnt != 4'd0 ) rstcnt <= rstcnt-4'd1;
+        else rstn <= 1'b1;
+    end
+end
 
 jtframe_ff u_nmi(
     .clk     (   clk          ),

@@ -18,6 +18,7 @@ Note that Double Dragon 1 and 2 are 57Hz games. Some screens do not support this
 ADPCM sounds with less treble than in MAME. Upon comparison with the arcade PCB, I think
 this is correct.
 
+* If the game doesn't start up after loading the ROM press F3 (reset) or select reset from the OSD menu
 * Please post any issues to the github page. Click on the issues tab.
 
 https://github.com/jotego/jtdd
@@ -81,7 +82,7 @@ In the bin folder there is a script called jtupdate which compiles DD1 and DD2 f
 MiST, MiSTer and SiDi.
 
 IMPORTANT:
-Double Dragon 2 may halt if compilation does not meet timing. 
+Double Dragon 2 may halt if compilation does not meet timing. Double Dragon 2 also needs to use the Verilog version of T80 module (Z80 IP). This is the effect of defining the macro TV80S in the file dd2/hdl/jtdd2.tcl. Using the VHDL version of T80 may result in the core freezing. The reason is not known.
 
 HDL Code Structure
 ==================
