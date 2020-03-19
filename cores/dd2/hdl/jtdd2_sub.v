@@ -45,7 +45,7 @@ module jtdd2_sub(
 
 );
 
-(*keep*) reg         ram_cs, shared_cs, nmi_ack;
+(*keep*) reg         shared_cs, nmi_ack;
 (*keep*) wire        rnw, int_n, mreq_n, busak_n;
 wire [15:0] A;
 wire [ 7:0] cpu_dout;
@@ -137,10 +137,16 @@ reg [7:0] dinA, dinB;
 reg [9:0] addrA, addrB;
 reg       weA, weB;
 
-always @(posedge clk) if(cen4) begin
-    addrA <= A[9:0];
-    dinA  <= cpu_dout;
-    weA   <= ~rnw & shared_cs;
+always @(*) begin
+    addrA = A[9:0];
+    dinA  = cpu_dout;
+end
+
+reg last_rnw;
+
+always @(posedge clk) begin
+    last_rnw <= rnw;
+    weA      <= ~rnw && last_rnw && shared_cs;
 end
 
 always @(posedge clk) if(main_cen) begin

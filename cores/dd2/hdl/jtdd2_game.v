@@ -169,7 +169,7 @@ jtframe_cen48 u_cen(
     .cen12   (  pxl2_cen ),
     .cen8    (           ),
     .cen6    (  pxl_cen  ),
-    .cen4    (  main4    ),
+    .cen4_12 (  main4    ),
     .cen3    (  cen3     ),
     .cen3b   (  cen3b    ),
     .cen3q   (  cen3q    ), // 1/4 advanced with respect to cen3
@@ -204,6 +204,7 @@ wire clk_alt = clk;
 `else 
 assign cen12 = alt12;
 assign cen4  = alt4;
+//assign cen4 = alt12;
 wire clk_alt = clk24;
 `endif
 
