@@ -55,7 +55,7 @@ module jtdd2_game(
     // DIP switches
     input   [31:0]  status,     // only bits 31:16 are looked at
     input           dip_pause,
-    input           dip_flip,
+    inout           dip_flip,
     input           dip_test,
     input   [ 1:0]  dip_fxlevel, // Not a DIP on the original PCB   
     // Sound output (monoaural game)
@@ -161,6 +161,9 @@ end
 
 `endif
 
+assign {dipsw_b, dipsw_a} = dipsw;
+assign dip_flip = dipsw[7];
+
 // Pixel signals all from 48MHz clock
 wire pxl_cenb, main4, alt4, alt12;
 
@@ -232,17 +235,6 @@ u_prom(
     .prog_we      ( prog_we         ),
     .prom_we      ( prom_prio_we    ),
     .sdram_ack    ( sdram_ack       )
-);
-
-jtdd_dip u_dip(
-    .clk        (  clk          ),
-    .status     (  status       ),
-    .dip_pause  (  dip_pause    ),
-    .dip_test   (  dip_test     ),
-    .dip_flip   (  dip_flip     ),
-    .turbo      (  turbo        ),
-    .dipsw_a    (  dipsw_a      ),
-    .dipsw_b    (  dipsw_b      )
 );
 
 `ifndef NOMAIN

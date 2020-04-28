@@ -10,4 +10,4 @@
     "OO,Hurricane Kick,easy,normal;", \
     // "ON,Turbo,Off,On;",
 `define CORE_KEYMAP \
-    "J,Left attack,Jump,Right attack,1P Start,2P Start,Coin,Credits;",
+    "J,Left attack,Jump,Right attack,1P Start,Coin,Credits;",
