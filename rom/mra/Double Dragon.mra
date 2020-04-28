@@ -44,7 +44,7 @@
         <dip name="Difficulty" bits="8,9" ids="Hardest,Easy,Hard,Medium"/>
         <dip name="Demo Sounds" bits="10" ids="Off,On"/>
         <dip name="Unused" bits="11" ids="On,Off"/>
-        <dip name="Bonus Life" bits="12,13" ids="40k,20k,40k and every 80k,30k and every 60k"/>
+        <dip name="Bonus Life" bits="12,13" ids="40k,20k,40k/80k*,30k/60k*"/>
         <dip name="Lives" bits="14,15" ids="Infinite,4,3,2"/>
     </switches>
 	<buttons names="Kick,Jump,Punch,Start,Coin,Pause" 

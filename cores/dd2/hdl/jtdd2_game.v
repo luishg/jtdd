@@ -53,7 +53,8 @@ module jtdd2_game(
     output          prog_we,
     output          prog_rd,
     // DIP switches
-    input   [31:0]  status,     // only bits 31:16 are looked at
+    input   [31:0]  status,
+    input   [31:0]  dipsw,
     input           dip_pause,
     inout           dip_flip,
     input           dip_test,
