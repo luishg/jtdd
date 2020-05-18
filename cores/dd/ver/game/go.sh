@@ -50,6 +50,7 @@ echo "Game ROM length: " $GAME_ROM_LEN
     -sysname dd -modules ../../../modules -d SCANDOUBLER_DISABLE=1 \
     -videow 256 -videoh 240 \
     -d JT51_NODEBUG -d JTFRAME_CLK24 -d JTFRAME_MRA_DIP -d BUTTONS=3\
+    -d VIDEO_START=2 -d JTFRAME_SIM_DIPS=0 \
     -d JT63701_SIMFILE=',.simfile("../../rom/21jm-0.ic55")' \
     $*
 

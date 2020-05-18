@@ -76,8 +76,8 @@ always @(posedge clk) if(pxl_cen) begin
                 aux <= VBL;
             end
         end
-        //if( vn == 8'hff && aux ) VBL <= 1'b0;
-        if( vn == 8'h08 ) VBL <= 1'b0;
+        if( vn == 8'hff && aux ) VBL <= 1'b0;
+        //if( vn == 8'h08 ) VBL <= 1'b0;
     end
 end
 

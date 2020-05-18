@@ -72,7 +72,7 @@ module jtdd_main(
     input       [ 7:0] rom_data,
     input              rom_ok,
     // DIP switches
-    input              dip_test,
+    input              service,
     input              dip_pause,
     input  [7:0]       dipsw_a,
     input  [7:0]       dipsw_b
@@ -196,7 +196,7 @@ always @(posedge clk) begin
         4'd0:    cabinet_input <= { start_button, fix_joy(joystick1[5:0]) };
         4'd1:    cabinet_input <= { coin_input,   fix_joy(joystick2[5:0]) };
         4'd2:    cabinet_input <= { 3'b111, mcu_ban, VBL, 
-            joystick2[6], joystick1[6], dip_test };
+            joystick2[6], joystick1[6], service };
         4'd3:    cabinet_input <= dipsw_a;
         4'd4:    cabinet_input <= dipsw_b;
         default: cabinet_input <= 8'hff;
