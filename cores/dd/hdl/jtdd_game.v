@@ -121,7 +121,7 @@ wire rom_ready;
 // Pixel signals all from 48MHz clock
 wire pxl_cenb;
 
-assign {dipsw_a, dipsw_b} = dipsw;
+assign {dipsw_b, dipsw_a} = dipsw;
 assign dip_flip = dipsw[7];
 
 jtframe_cen48 u_cen(
