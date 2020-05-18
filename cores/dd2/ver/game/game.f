@@ -30,5 +30,6 @@
 # Other
 ../../../modules/jtframe/hdl/jtframe_ff.v
 ../../../modules/jtframe/hdl/jtframe_sh.v
+../../../modules/jtframe/hdl/keyboard/jtframe_4wayjoy.v
 ../../../modules/jtframe/hdl/sound/jtframe_mixer.v
 ../../../modules/jtframe/hdl/video/jtframe_credits.v

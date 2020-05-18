@@ -44,7 +44,7 @@ module jtdd2_game(
     input           sdram_ack,
     output          refresh_en,
     // ROM LOAD
-    input   [21:0]  ioctl_addr,
+    input   [24:0]  ioctl_addr,
     input   [ 7:0]  ioctl_data,
     input           ioctl_wr,
     output  [21:0]  prog_addr,
@@ -137,31 +137,6 @@ localparam PROM_ADDR   = 22'h190000;
 localparam [21:0] SCR_SDRAM  = 22'h6_0000;
 localparam [21:0] OBJ_SDRAM  = 22'h8_0000;
 
-
-
-`ifdef MISTER
-
-reg rst_game;
-
-always @(negedge clk)
-    rst_game <= rst || !rom_ready || downloading;
-
-`else
-
-reg rst_game=1'b1;
-
-always @(posedge clk) begin : rstgame_gen
-    reg rst_aux;
-    if( rst || !rom_ready ) begin
-        {rst_game,rst_aux} <= 2'b11;
-    end
-    else begin
-        {rst_game,rst_aux} <= {rst_aux, downloading };
-    end
-end
-
-`endif
-
 assign {dipsw_b, dipsw_a} = dipsw;
 assign dip_flip = dipsw[7];
 
@@ -171,8 +146,10 @@ wire pxl_cenb, main4, alt4, alt12;
 jtframe_cen48 u_cen(
     .clk     (  clk      ),    // 48 MHz
     .cen12   (  pxl2_cen ),
+    .cen16   (           ),
     .cen8    (           ),
     .cen6    (  pxl_cen  ),
+    .cen4    (           ),
     .cen4_12 (  main4    ),
     .cen3    (  cen3     ),
     .cen3b   (  cen3b    ),
@@ -241,7 +218,7 @@ u_prom(
 `ifndef NOMAIN
 jtdd_main u_main(
     .clk            ( clk24         ),  // slower clock to ease synthesis
-    .rst            ( rst_game      ),
+    .rst            ( rst           ),
     .cen12          ( cen12         ),
     .cpu_cen        ( cpu_cen       ),
     .VBL            ( VBL           ),
@@ -329,7 +306,7 @@ assign mcu_rstb  = 1'b0;
 `ifndef NOMCU
 jtdd2_sub u_sub(
     .clk          (  clk24           ), // slower clock
-    .rst          (  rst_game        ),
+    .rst          (  rst             ),
     .mcu_rstb     (  mcu_rstb        ),
     .cen4         (  cen4            ),
     .main_cen     (  cpu_cen         ),
@@ -372,7 +349,7 @@ jtdd2_sound u_sound(
     .rst         ( rst           ),
     .H8          ( H8            ),
     // communication with main CPU
-    .snd_rstb    ( ~rst_game     ),
+    .snd_rstb    ( ~rst          ),
     .snd_irq     ( snd_irq       ),
     .snd_latch   ( snd_latch     ),
     // ROM
@@ -408,6 +385,7 @@ jtdd_video u_video(
     .pxl_cenb     (  pxl_cenb        ),
     .cen_Q        (  cpu_cen         ),
     .dip_pause    (  dip_pause       ),
+    .credits      (  start_button[0] ),
     .cpu_AB       (  cpu_AB          ),
     .pal_cs       (  pal_cs          ),
     .char_cs      (  char_cs         ),
@@ -541,7 +519,14 @@ jtframe_rom #(
     .loop_rst    ( loop_rst      ),
     .sdram_addr  ( sdram_addr    ),
     .data_read   ( data_read     ),
-    .refresh_en  ( refresh_en    )
+    .refresh_en  ( refresh_en    ),
+    // unused
+    .slot3_ok    (               ),
+    .slot4_ok    (               ),
+    .slot3_dout  (               ),
+    .slot4_dout  (               ),
+    .slot3_addr  (               ),
+    .slot4_addr  (               )
 );
 
 endmodule

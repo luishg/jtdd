@@ -99,7 +99,9 @@ jt5205 u_decod(
     .sel    ( 2'b10     ),
     .din    ( din       ),
     .sound  ( snd       ),
-    .irq    ( sample    )
+    .irq    ( sample    ),
+    // unused
+    .vclk_o (           )
 );
 
 endmodule

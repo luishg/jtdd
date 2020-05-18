@@ -261,6 +261,7 @@ jtframe_sys6809 #(.RAM_AW(13)) u_cpu(
     .nIRQ       ( nIRQ      ),
     .nFIRQ      ( nFIRQ     ),
     .nNMI       ( nNMI      ),
+    .irq_ack    (           ),
     // Bus sharing
     .bus_busy   ( 1'b0      ),
     .waitn      (           ),

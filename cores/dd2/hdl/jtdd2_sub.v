@@ -118,6 +118,7 @@ jtframe_z80_romwait u_sub(
     .rst_n      ( rstn          ),
     .clk        ( clk           ),
     .cen        ( cen4          ),
+    .cpu_cen    (               ),
     .int_n      ( 1'b1          ),
     .nmi_n      ( int_n         ),
     .busrq_n    ( busrq_n       ),
@@ -183,7 +184,7 @@ jtframe_dual_ram #(.aw(10),.dumpfile("sub.hex")) u_shared(
     .we1    ( weB         ),
     .q1     ( shared_dout )
     `ifdef SIMULATION
-    ,.dump   ( dump        )
+    //,.dump   ( dump        )
     `endif
 );
 
