@@ -109,8 +109,10 @@ wire       [ 7:0]  mcu_ram;
 wire               prom_prio_we;
 
 wire       [ 8:0]  scrhpos, scrvpos;
+wire               service;
 
 assign dwnld_busy = downloading;
+assign service = 1;
 
 wire cen12, cen8, cen6, cen4, cen3, cen3q, cen1p5, cen12b, cen6b, cen3b, cen3qb;
 wire cpu_cen;
@@ -233,7 +235,7 @@ jtdd_main u_main(
     .rom_ok         ( main_ok       ),
     // DIP switches
     .dip_pause      ( dip_pause     ),
-    .dip_test       ( dip_test      ),
+    .service        ( service       ),
     .dipsw_a        ( dipsw_a       ),
     .dipsw_b        ( dipsw_b       )
 );

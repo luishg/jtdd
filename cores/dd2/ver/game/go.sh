@@ -50,8 +50,8 @@ fi
 echo "Game ROM length: " $GAME_ROM_LEN
 ../../../modules/jtframe/bin/sim.sh $MIST -d GAME_ROM_LEN=$GAME_ROM_LEN \
     -sysname dd2 -modules ../../../modules -d SCANDOUBLER_DISABLE=1 \
-    -d JTFRAME_MRA_DIP \
-    -videow 256 -videoh 239 -d BUTTONS=3 \
+    -d JTFRAME_MRA_DIP -d VIDEO_START=2 \
+    -videow 256 -videoh 240 -d BUTTONS=3 \
     -d JT51_NODEBUG -d JTFRAME_CLK24 -d DD2 \
     $*
 rm sub*.bin
