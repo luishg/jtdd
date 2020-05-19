@@ -24,6 +24,7 @@ module jtdd_video(
     input              pxl_cen,
     input              pxl_cenb,
     input              dip_pause,
+    input              credits,
     // CPU bus
     input      [12:0]  cpu_AB,
     input              cpu_wrn,
@@ -211,6 +212,7 @@ jtframe_credits #(.BLKPOL(0),.PAGES(4)) u_credits (
     .VB          ( game_LVBL        ),
     .rgb_in      ( game_rgb         ),
     .enable      ( ~dip_pause       ),
+    .toggle      ( credits          ),
     // output image
     .HB_out      ( LHBL_dly         ),
     .VB_out      ( LVBL_dly         ),

@@ -44,7 +44,7 @@ module jtdd2_game(
     input           sdram_ack,
     output          refresh_en,
     // ROM LOAD
-    input   [21:0]  ioctl_addr,
+    input   [24:0]  ioctl_addr,
     input   [ 7:0]  ioctl_data,
     input           ioctl_wr,
     output  [21:0]  prog_addr,
@@ -53,9 +53,10 @@ module jtdd2_game(
     output          prog_we,
     output          prog_rd,
     // DIP switches
-    input   [31:0]  status,     // only bits 31:16 are looked at
+    input   [31:0]  status,
+    input   [31:0]  dipsw,
     input           dip_pause,
-    input           dip_flip,
+    inout           dip_flip,
     input           dip_test,
     input   [ 1:0]  dip_fxlevel, // Not a DIP on the original PCB   
     // Sound output (monoaural game)
@@ -109,8 +110,10 @@ wire       [ 7:0]  mcu_ram;
 wire               prom_prio_we;
 
 wire       [ 8:0]  scrhpos, scrvpos;
+wire               service;
 
 assign dwnld_busy = downloading;
+assign service    = 1;
 
 wire cen12, cen8, cen6, cen4, cen3, cen3q, cen1p5, cen12b, cen6b, cen3b, cen3qb;
 wire cpu_cen, turbo;
@@ -136,30 +139,8 @@ localparam PROM_ADDR   = 22'h190000;
 localparam [21:0] SCR_SDRAM  = 22'h6_0000;
 localparam [21:0] OBJ_SDRAM  = 22'h8_0000;
 
-
-
-`ifdef MISTER
-
-reg rst_game;
-
-always @(negedge clk)
-    rst_game <= rst || !rom_ready || downloading;
-
-`else
-
-reg rst_game=1'b1;
-
-always @(posedge clk) begin : rstgame_gen
-    reg rst_aux;
-    if( rst || !rom_ready ) begin
-        {rst_game,rst_aux} <= 2'b11;
-    end
-    else begin
-        {rst_game,rst_aux} <= {rst_aux, downloading };
-    end
-end
-
-`endif
+assign {dipsw_b, dipsw_a} = dipsw;
+assign dip_flip = dipsw[7];
 
 // Pixel signals all from 48MHz clock
 wire pxl_cenb, main4, alt4, alt12;
@@ -167,8 +148,10 @@ wire pxl_cenb, main4, alt4, alt12;
 jtframe_cen48 u_cen(
     .clk     (  clk      ),    // 48 MHz
     .cen12   (  pxl2_cen ),
+    .cen16   (           ),
     .cen8    (           ),
     .cen6    (  pxl_cen  ),
+    .cen4    (           ),
     .cen4_12 (  main4    ),
     .cen3    (  cen3     ),
     .cen3b   (  cen3b    ),
@@ -234,27 +217,30 @@ u_prom(
     .sdram_ack    ( sdram_ack       )
 );
 
-jtdd_dip u_dip(
-    .clk        (  clk          ),
-    .status     (  status       ),
-    .dip_pause  (  dip_pause    ),
-    .dip_test   (  dip_test     ),
-    .dip_flip   (  dip_flip     ),
-    .turbo      (  turbo        ),
-    .dipsw_a    (  dipsw_a      ),
-    .dipsw_b    (  dipsw_b      )
-);
+reg [1:0] last_sb;
+reg cheat_main, cheat_sub;
+
+always @(posedge clk) if(cen12) begin
+    last_sb <= start_button;
+    if( !start_button[1] && last_sb[1] ) cheat_main <= 1;
+    else if( VBL ) cheat_main<=0;
+    if( !start_button[0] && last_sb[0] ) cheat_sub <= 1;
+    else if( VBL ) cheat_sub<=0;
+end
+
+wire mcu_cheat = mcu_irqmain || cheat_main;
+wire mcu_nmi_cheat = mcu_nmi_set || cheat_sub;
 
 `ifndef NOMAIN
 jtdd_main u_main(
     .clk            ( clk24         ),  // slower clock to ease synthesis
-    .rst            ( rst_game      ),
+    .rst            ( rst           ),
     .cen12          ( cen12         ),
     .cpu_cen        ( cpu_cen       ),
     .VBL            ( VBL           ),
     .IMS            ( IMS           ), // =VPOS[3]
     // MCU
-    .mcu_irqmain    ( mcu_irqmain   ),
+    .mcu_irqmain    ( mcu_cheat     ),
     .mcu_halt       ( mcu_halt      ),
     .mcu_ban        ( mcu_ban       ),
     .com_cs         ( com_cs        ),
@@ -295,7 +281,7 @@ jtdd_main u_main(
     .rom_ok         ( main_ok       ),
     // DIP switches
     .dip_pause      ( dip_pause     ),
-    .dip_test       ( dip_test      ),
+    .service        ( service       ),
     .dipsw_a        ( dipsw_a       ),
     .dipsw_b        ( dipsw_b       )
 );
@@ -336,7 +322,7 @@ assign mcu_rstb  = 1'b0;
 `ifndef NOMCU
 jtdd2_sub u_sub(
     .clk          (  clk24           ), // slower clock
-    .rst          (  rst_game        ),
+    .rst          (  rst             ),
     .mcu_rstb     (  mcu_rstb        ),
     .cen4         (  cen4            ),
     .main_cen     (  cpu_cen         ),
@@ -347,7 +333,7 @@ jtdd2_sub u_sub(
     .shared_dout  (  mcu_ram         ),
     // CPU Interface
     .com_cs       (  com_cs          ),
-    .mcu_nmi_set  (  mcu_nmi_set     ),
+    .mcu_nmi_set  (  mcu_nmi_cheat   ),
     .mcu_halt     (  mcu_halt        ),
     .mcu_irqmain  (  mcu_irqmain     ),
     .mcu_ban      (  mcu_ban         ),
@@ -379,7 +365,7 @@ jtdd2_sound u_sound(
     .rst         ( rst           ),
     .H8          ( H8            ),
     // communication with main CPU
-    .snd_rstb    ( ~rst_game     ),
+    .snd_rstb    ( ~rst          ),
     .snd_irq     ( snd_irq       ),
     .snd_latch   ( snd_latch     ),
     // ROM
@@ -415,6 +401,7 @@ jtdd_video u_video(
     .pxl_cenb     (  pxl_cenb        ),
     .cen_Q        (  cpu_cen         ),
     .dip_pause    (  dip_pause       ),
+    .credits      (  start_button[0] ),
     .cpu_AB       (  cpu_AB          ),
     .pal_cs       (  pal_cs          ),
     .char_cs      (  char_cs         ),
@@ -548,7 +535,14 @@ jtframe_rom #(
     .loop_rst    ( loop_rst      ),
     .sdram_addr  ( sdram_addr    ),
     .data_read   ( data_read     ),
-    .refresh_en  ( refresh_en    )
+    .refresh_en  ( refresh_en    ),
+    // unused
+    .slot3_ok    (               ),
+    .slot4_ok    (               ),
+    .slot3_dout  (               ),
+    .slot4_dout  (               ),
+    .slot3_addr  (               ),
+    .slot4_addr  (               )
 );
 
 endmodule

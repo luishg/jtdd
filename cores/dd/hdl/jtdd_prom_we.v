@@ -28,7 +28,7 @@
 module jtdd_prom_we(
     input                clk,
     input                downloading,
-    input      [21:0]    ioctl_addr,
+    input      [24:0]    ioctl_addr,
     input      [ 7:0]    ioctl_data,
     input                ioctl_wr,
     output reg [21:0]    prog_addr,
@@ -148,7 +148,7 @@ always @(posedge clk) begin
             `INFO_MCU
         end
         else begin // PROMs
-            prog_addr <= ioctl_addr;
+            prog_addr <= ioctl_addr[21:0];
             prog_we   <= 1'b0;
             prog_mask <= 2'b11;
             prom_we0  <= ioctl_addr[10:8] == 3'd0;

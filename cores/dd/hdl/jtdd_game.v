@@ -16,8 +16,6 @@
     Version: 1.0
     Date: 2-12-2019 */
 
-`timescale 1ns/1ps
-
 module jtdd_game(
     input           clk,
     input           clk24,
@@ -44,7 +42,7 @@ module jtdd_game(
     input           sdram_ack,
     output          refresh_en,
     // ROM LOAD
-    input   [21:0]  ioctl_addr,
+    input   [24:0]  ioctl_addr,
     input   [ 7:0]  ioctl_data,
     input           ioctl_wr,
     output  [21:0]  prog_addr,
@@ -53,9 +51,10 @@ module jtdd_game(
     output          prog_we,
     output          prog_rd,
     // DIP switches
-    input   [31:0]  status,     // only bits 31:16 are looked at
+    input   [31:0]  status,
+    input   [31:0]  dipsw,
     input           dip_pause,
-    input           dip_flip,
+    inout           dip_flip,
     input           dip_test,
     input   [ 1:0]  dip_fxlevel, // Not a DIP on the original PCB   
     // Sound output (monoaural game)
@@ -88,7 +87,7 @@ wire       [14:0]  snd_addr;
 wire       [15:0]  adpcm0_addr, adpcm1_addr;
 wire       [ 7:0]  char_data, adpcm0_data, adpcm1_data;
 wire       [16:0]  scr_addr;
-wire       [17:0]  obj_addr;
+wire       [18:0]  obj_addr;
 wire       [15:0]  scr_data, obj_data;
 wire               char_ok, scr_ok, obj_ok, main_ok, snd_ok;
 wire               adpcm0_ok, adpcm1_ok;
@@ -110,22 +109,29 @@ wire       [ 7:0]  mcu_ram;
 wire               prom_prio_we;
 
 wire       [ 8:0]  scrhpos, scrvpos;
+wire               service;
 
 assign dwnld_busy = downloading;
+assign service = 1;
 
 wire cen12, cen8, cen6, cen4, cen3, cen3q, cen1p5, cen12b, cen6b, cen3b, cen3qb;
-wire cpu_cen, turbo;
+wire cpu_cen;
 wire rom_ready;
 
 // Pixel signals all from 48MHz clock
 wire pxl_cenb;
 
+assign {dipsw_b, dipsw_a} = dipsw;
+assign dip_flip = dipsw[7];
+
 jtframe_cen48 u_cen(
     .clk     (  clk      ),    // 48 MHz
     .cen12   (  pxl2_cen ),
+    .cen16   (           ),
     .cen8    (           ),
     .cen6    (  pxl_cen  ),
     .cen4    (  cen4     ),
+    .cen4_12 (           ),
     .cen3    (  cen3     ),
     .cen3b   (  cen3b    ),
     .cen3q   (  cen3q    ), // 1/4 advanced with respect to cen3
@@ -179,17 +185,6 @@ jtdd_prom_we u_prom(
     .sdram_ack    ( sdram_ack       )
 );
 
-jtdd_dip u_dip(
-    .clk        (  clk          ),
-    .status     (  status       ),
-    .dip_pause  (  dip_pause    ),
-    .dip_test   (  dip_test     ),
-    .dip_flip   (  dip_flip     ),
-    .turbo      (  turbo        ),
-    .dipsw_a    (  dipsw_a      ),
-    .dipsw_b    (  dipsw_b      )
-);
-
 `ifndef NOMAIN
 jtdd_main u_main(
     .clk            ( clk_alt       ),
@@ -240,7 +235,7 @@ jtdd_main u_main(
     .rom_ok         ( main_ok       ),
     // DIP switches
     .dip_pause      ( dip_pause     ),
-    .dip_test       ( dip_test      ),
+    .service        ( service       ),
     .dipsw_a        ( dipsw_a       ),
     .dipsw_b        ( dipsw_b       )
 );
@@ -343,6 +338,7 @@ jtdd_video u_video(
     .pxl_cenb     (  pxl_cenb        ),
     .cen_Q        (  cpu_cen         ),
     .dip_pause    (  dip_pause       ),
+    .credits      (  start_button[0] ),
     .cpu_AB       (  cpu_AB          ),
     .pal_cs       (  pal_cs          ),
     .char_cs      (  char_cs         ),
@@ -466,7 +462,7 @@ jtframe_rom #(
     .slot5_addr  ( mcu_addr      ),
     .slot6_addr  ( snd_addr      ),
     .slot7_addr  ( main_addr     ),
-    .slot8_addr  ( obj_addr      ),
+    .slot8_addr  ( obj_addr[17:0]),
 
     .slot0_dout  ( char_data     ),
     .slot1_dout  ( scr_data      ),
@@ -486,7 +482,11 @@ jtframe_rom #(
     .loop_rst    ( loop_rst      ),
     .sdram_addr  ( sdram_addr    ),
     .data_read   ( data_read     ),
-    .refresh_en  ( refresh_en    )
+    .refresh_en  ( refresh_en    ),
+    // Unused
+    .slot4_addr  (               ),
+    .slot4_dout  (               ),
+    .slot4_ok    (               )
 );
 
 endmodule

@@ -6,3 +6,5 @@ set_global_assignment -name VERILOG_MACRO "BUTTONS=3"
 set_global_assignment -name VERILOG_MACRO "JTFRAME_SDRAM_REPACK=1"
 set_global_assignment -name VERILOG_MACRO "JTFRAME_CLK24=1"
 set_global_assignment -name VERILOG_MACRO "TV80S=1"
+set_global_assignment -name VERILOG_MACRO "JTFRAME_MRA_DIP=1"
+
