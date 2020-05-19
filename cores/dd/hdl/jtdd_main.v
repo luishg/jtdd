@@ -96,7 +96,6 @@ wire irq_clr     = w3805;
 `endif
 wire sndlatch_cs = w3806;
 wire irq_ack;
-reg  IMS24;
 
 assign mcu_nmi_set = w3807;
 
@@ -243,15 +242,14 @@ end
 (*keep*) reg VBL_pause;
 
 always @(posedge clk) if(cpu_cen) begin
-    IMS24     <= IMS;
     VBL_pause <= VBL & dip_pause;
 end
 
 jtframe_ff #(.W(3)) u_irq(
     .clk     (   clk                            ),
     .rst     (   rst                            ),
-    .cen     (   cen12                          ),
-    .sigedge ( {VBL_pause, IMS24, mcu_irqmain } ),
+    .cen     (   1'b1                           ),
+    .sigedge ( {VBL_pause, IMS, mcu_irqmain   } ),
     .din     ( ~3'd0                            ),
     .clr     ( { w3803, w3804, w3805 }          ),
     .set     ( 3'b0                             ),

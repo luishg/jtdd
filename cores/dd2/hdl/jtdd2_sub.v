@@ -48,7 +48,7 @@ module jtdd2_sub(
 
 (*keep*) reg         shared_cs, nmi_ack;
 (*keep*) wire        rnw, int_n, mreq_n;
-reg busak_n;
+wire        busak_n;
 wire [15:0] A;
 wire [ 7:0] cpu_dout;
 reg  [ 7:0] cpu_din;
@@ -94,7 +94,6 @@ end
 always @(posedge clk) begin
     mcu_irqmain <= !mreq_n && A[15:12]==4'b1101 && !rnw;
     nmi_ack     <= !mreq_n && A[15:12]==4'b1110 && !rnw;
-    busak_n <= busrq_n;
 end
 
 // Input multiplexer
@@ -115,8 +114,7 @@ jtframe_z80_romwait u_sub(
     .cpu_cen    ( cpu_cen       ),
     .int_n      ( 1'b1          ),
     .nmi_n      ( int_n         ),
-    //.busrq_n    ( busrq_n       ),
-    .busrq_n    ( 1'b1          ),
+    .busrq_n    ( busrq_n       ),
     .m1_n       (               ),
     .mreq_n     ( mreq_n        ),
     .iorq_n     (               ),
@@ -124,8 +122,7 @@ jtframe_z80_romwait u_sub(
     .wr_n       ( rnw           ),
     .rfsh_n     (               ),
     .halt_n     (               ),
-    //.busak_n    ( busak_n       ),
-    .busak_n    (               ),
+    .busak_n    ( busak_n       ),
     .A          ( A             ),
     .din        ( cpu_din       ),
     .dout       ( cpu_dout      ),
@@ -148,22 +145,18 @@ reg [7:0] dinA, dinB;
 reg [9:0] addrA, addrB;
 reg       weA, weB;
 
+// Sub CPU uses port A
 always @(*) begin
     addrA = A[9:0];
     dinA  = cpu_dout;
+    weA   = ~rnw && shared_cs;
 end
 
-reg last_rnw;
-
-always @(posedge clk) begin
-    last_rnw <= rnw;
-    weA      <= ~rnw && last_rnw && shared_cs;
-end
-
-always @(posedge clk) if(main_cen) begin
-    addrB <= {1'b0,main_AB};
-    dinB  <= main_dout;
-    weB   <= !main_wrn && com_cs && halted;
+// Main CPU uses port B
+always @(*) begin
+    addrB = {1'b0,main_AB};
+    dinB  = main_dout;
+    weB   = !main_wrn && com_cs; //&& halted;
 end
 
 jtframe_dual_ram #(.aw(10),.dumpfile("sub.hex")) u_shared(
