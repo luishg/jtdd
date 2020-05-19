@@ -365,7 +365,6 @@ jtdd2_sound u_sound(
     .rst         ( rst           ),
     .H8          ( H8            ),
     // communication with main CPU
-    .snd_rstb    ( ~rst          ),
     .snd_irq     ( snd_irq       ),
     .snd_latch   ( snd_latch     ),
     // ROM

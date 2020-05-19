@@ -29,7 +29,6 @@ module jtdd2_sound(
     input           rst,
     input           H8,
     // communication with main CPU
-    input           snd_rstb,
     input           snd_irq,
     input   [ 7:0]  snd_latch,
     // ROM

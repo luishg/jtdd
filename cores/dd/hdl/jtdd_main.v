@@ -105,15 +105,14 @@ always @(*) begin
     pal_cs      = 1'b0;
     ram_cs      = 1'b0;
     char_cs     = 1'b0;
-    rom_cs      = 1'b0;
     obj_cs      = 1'b0;
     misc_cs     = 1'b0;
     com_cs      = 1'b0;
-    banked_cs   = 1'b0;
     w3801       = 1'b0;
     w3802       = 1'b0;
     w3806       = 1'b0;
-    //w3807       = 1'b0;
+    rom_cs      = A[15] | A[14];
+    banked_cs   = ~A[15] & A[14];
     if( A[15:14]==2'b00 ) begin
         case(A[13:11])
             3'd0, 3'd1: ram_cs = 1'b1;
@@ -144,9 +143,6 @@ always @(*) begin
                 end
             end
         endcase
-    end else begin
-        rom_cs    = A[15] | A[14];
-        banked_cs = ~A[15] & A[14];
     end
 end
 
@@ -168,11 +164,10 @@ always @(posedge clk or posedge rst) begin
         scrvpos     <= 9'b0;
         mcu_rstb    <= 1'b0;
     end else if(cpu_cen) begin
-        snd_irq <= 1'b0;
         if( sndlatch_cs ) begin
             snd_latch <= cpu_dout;
             snd_irq   <= 1'b1;
-        end
+        end else snd_irq <= 1'b0;
         if( scrvpos_cs ) scrvpos[7:0] <= cpu_dout;
         if( scrhpos_cs ) scrhpos[7:0] <= cpu_dout;
         if( misc_cs ) begin
