@@ -95,6 +95,9 @@ wire firq_clr    = w3804;
 wire irq_clr     = w3805;
 `endif
 wire sndlatch_cs = w3806;
+wire irq_ack;
+reg  IMS24;
+
 assign mcu_nmi_set = w3807;
 
 always @(*) begin
@@ -110,11 +113,8 @@ always @(*) begin
     banked_cs   = 1'b0;
     w3801       = 1'b0;
     w3802       = 1'b0;
-    w3803       = 1'b0;
-    w3804       = 1'b0;
-    w3805       = 1'b0;
     w3806       = 1'b0;
-    w3807       = 1'b0;
+    //w3807       = 1'b0;
     if( A[15:14]==2'b00 ) begin
         case(A[13:11])
             3'd0, 3'd1: ram_cs = 1'b1;
@@ -139,11 +139,7 @@ always @(*) begin
                             3'd0: misc_cs = 1'b1;
                             3'd1: w3801   = 1'b1; // H scroll
                             3'd2: w3802   = 1'b1; // V scroll
-                            3'd3: w3803   = 1'b1; // clear NMI interrupt
-                            3'd4: w3804   = 1'b1; // FIRQ clear
-                            3'd5: w3805   = 1'b1; // IRQ clear
                             3'd6: w3806   = 1'b1; // sound latch CS
-                            3'd7: w3807   = 1'b1; // MCU NMI set
                         endcase
                     end
                 end
@@ -153,6 +149,13 @@ always @(*) begin
         rom_cs    = A[15] | A[14];
         banked_cs = ~A[15] & A[14];
     end
+end
+
+always @(posedge clk) begin
+    w3803 <= A[15:10] == 6'b0011_10 && A[2:0]==3'd3; // NMI clear
+    w3804 <= A[15:10] == 6'b0011_10 && A[2:0]==3'd4; // FIRQ ack
+    w3805 <= A[15:10] == 6'b0011_10 && A[2:0]==3'd5; // IRQ ack (from MCU)
+    w3807 <= A[15:10] == 6'b0011_10 && A[2:0]==3'd7;
 end
 
 // special registers. Schematic sheet 3/9
@@ -237,13 +240,18 @@ end
 
 // Interrupts
 (*keep*) wire nIRQ, nFIRQ, nNMI;
-(*keep*) wire VBL_pause = VBL & dip_pause;
+(*keep*) reg VBL_pause;
+
+always @(posedge clk) if(cpu_cen) begin
+    IMS24     <= IMS;
+    VBL_pause <= VBL & dip_pause;
+end
 
 jtframe_ff #(.W(3)) u_irq(
     .clk     (   clk                            ),
     .rst     (   rst                            ),
-    .cen     (   1'b1                           ),
-    .sigedge ( { VBL_pause, IMS, mcu_irqmain }  ),
+    .cen     (   cen12                          ),
+    .sigedge ( {VBL_pause, IMS24, mcu_irqmain } ),
     .din     ( ~3'd0                            ),
     .clr     ( { w3803, w3804, w3805 }          ),
     .set     ( 3'b0                             ),
@@ -261,7 +269,7 @@ jtframe_sys6809 #(.RAM_AW(13)) u_cpu(
     .nIRQ       ( nIRQ      ),
     .nFIRQ      ( nFIRQ     ),
     .nNMI       ( nNMI      ),
-    .irq_ack    (           ),
+    .irq_ack    ( irq_ack   ),
     // Bus sharing
     .bus_busy   ( 1'b0      ),
     .waitn      (           ),
